@@ -1,0 +1,28 @@
+name: Web client workflow
+on:
+  push:
+    paths:
+      - ".github/workflows/web_client.yml"
+      - "web_client/**"
+
+jobs:
+  build:
+    name: Build and lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install
+        run: cd web_client; yarn install
+
+      - name: Lint
+        run: cd web_client; yarn lint
+
+      - name: Format Check
+        run: cd web_client; yarn fmtcheck
