@@ -1,2 +1,2 @@
-env = "prod"
+env     = "prod"
 project = "eitan-flash-prod"

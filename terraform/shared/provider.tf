@@ -1,4 +1,4 @@
-provider google {
+provider "google" {
   project = var.project
-  region = "asia-northeast1"
+  region  = "asia-northeast1"
 }
