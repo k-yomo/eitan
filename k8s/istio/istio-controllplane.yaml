@@ -1,0 +1,19 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: istio-controlplane
+spec:
+  profile: demo
+  components:
+    pilot:
+      k8s:
+        replicaCount: 1
+    ingressGateways:
+      - name: istio-ingressgateway
+        k8s:
+          replicaCount: 1
+    egressGateways:
+      - name: istio-egressgateway
+        k8s:
+          replicaCount: 1
