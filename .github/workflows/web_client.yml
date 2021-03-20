@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - ".github/workflows/web_client.yml"
-      - "web_client/**"
+      - "src/web_client/**"
 
 jobs:
   build:
@@ -19,10 +19,10 @@ jobs:
           node-version: 14.x
 
       - name: Install
-        run: cd web_client; yarn install
+        run: cd src/web_client; yarn install
 
       - name: Lint
-        run: cd web_client; yarn lint
+        run: cd src/web_client; yarn lint
 
       - name: Format Check
-        run: cd web_client; yarn fmtcheck
+        run: cd src/web_client; yarn fmtcheck
