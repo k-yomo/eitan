@@ -1,7 +1,15 @@
 
+.PHONY: setup
+setup:
+	GO111MODULE=off go get -u github.com/cosmtrek/air
+	go mod download
+	cd src/web_client; yarn
+
+
 .PHONY: run
 run:
 	docker-compose up
+	open http://local.eitan-flash.com:3000
 
 .PHONY: gen-model
 gen-model:
@@ -11,6 +19,7 @@ gen-model:
 .PHONY: gen-graphql
 gen-graphql:
 	cd src/eitan_service; go generate ./...
+	cd src/web_client; yarn codegn
 
 .PHONY: gen_proto
 gen-proto:
