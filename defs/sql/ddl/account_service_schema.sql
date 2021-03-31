@@ -1,0 +1,10 @@
+CREATE TABLE accountdb.accounts (
+  id VARCHAR(255) NOT NULL PRIMARY KEY COMMENT 'アカウントID',
+  provider VARCHAR(20) NOT NULL COMMENT '認証プロバイダー',
+  email VARCHAR (255) NOT NULL UNIQUE COMMENT 'Eメールアドレス',
+  display_name VARCHAR(20) NOT NULL COMMENT 'ユーザー名',
+  screen_img_url VARCHAR(255) COMMENT 'スクリーン画像',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX email_idx (email)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'アカウント';

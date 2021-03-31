@@ -1,0 +1,12 @@
+fragment accountInfo on Account {
+    id
+    email
+    displayName
+    screenImgUrl
+}
+
+query currentAccount {
+    currentAccount {
+        ...accountInfo
+    }
+}

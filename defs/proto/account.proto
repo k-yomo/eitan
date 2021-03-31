@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package eitan;
+
+import "common.proto";
+
+message Account {
+    string id = 1;
+    string provider = 2;
+    string email = 3;
+    string display_name = 4;
+    optional string screen_img_url = 5;
+}
+
+message AuthenticateRequest {
+    string session_id = 1;
+}
+
+message AuthenticateResponse {
+    Account account = 1;
+}
+
+message GetCurrentAccountResponse {
+    Account account = 1;
+}
+
+service AccountService {
+    rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {
+    }
+    rpc GetCurrentAccount (Empty) returns (GetCurrentAccountResponse) {
+    }
+}

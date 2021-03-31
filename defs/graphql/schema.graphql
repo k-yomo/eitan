@@ -1,0 +1,41 @@
+scalar Time
+
+type Query {
+    node(id: ID!): Node
+    nodes(ids: [ID!]!): [Node]!
+
+    currentAccount: Account! @hasRole(role: USER)
+}
+
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+    USER
+}
+
+enum ErrorCode {
+    UNAUTHENTICATED
+    UNAUTHORIZED
+    ALREADY_EXIST
+    INVALID_ARGUMENT
+    NOT_FOUND
+    INTERNAL
+}
+
+interface Node {
+    id: ID!
+}
+
+type Account implements Node {
+    id: ID!
+    email: String!
+    displayName: String!
+    screenImgUrl: String
+}
+
+type AccountPublic implements Node {
+    id: ID!
+    displayName: String!
+    screenImgUrl: String
+}
+

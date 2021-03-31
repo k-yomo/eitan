@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:5.7
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    ports:
+      - 13306:3306
+    volumes:
+      - ./defs/sql/ddl:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
+
+  web_client:
+    build:
+      context: .
+      dockerfile: web_client.Dockerfile
+    volumes:
+    - ./src/web_client:/usr/src/app
+    ports:
+    - 3000:3000
+    environment:
+      NEXT_PUBLIC_AUTH_API_URL: http://localhost:4000
+
+  account_service:
+    build:
+      context: .
+      dockerfile: account_service.dev.Dockerfile
+    volumes:
+      - ./src/account_service:/go/src/app
+    ports:
+      - 4000:4000
+      - 4040:4040
+    env_file:
+      - .env.public
+      - .env
+    environment:
+      DB_URL: db:3306
+    depends_on:
+      - db
+
+  eitan_service:
+    build:
+      context: .
+      dockerfile: eitan_service.dev.Dockerfile
+    volumes:
+      - ./src/eitan_service:/go/src/app
+    ports:
+      - 5000:5000
+    env_file:
+      - .env.public
+      - .env
+    environment:
+      DB_URL: db:3306
+      ACCOUNT_SERVICE_GRPC_URL: account_service:4040
+    depends_on:
+      - account_service
+
+volumes:
+  db_data:

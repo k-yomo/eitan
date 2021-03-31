@@ -18,6 +18,10 @@ resource "google_container_cluster" "eitan" {
     enabled = false
   }
 
+  workload_identity_config {
+    identity_namespace = "${var.project}.svc.id.goog"
+  }
+
   remove_default_node_pool = true
   initial_node_count       = 1
 
@@ -46,6 +50,10 @@ resource "google_container_node_pool" "primary_nodes" {
   node_config {
     machine_type = var.gke_primary_node_machine_type
 
+    workload_metadata_config {
+      node_metadata = "GKE_METADATA_SERVER"
+    }
+
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
@@ -54,6 +62,10 @@ resource "google_container_node_pool" "primary_nodes" {
     metadata = {
       disable-legacy-endpoints = true
     }
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -77,6 +89,10 @@ resource "google_container_node_pool" "preemptible_nodes" {
     preemptible  = true
     machine_type = var.gke_preemptible_node_machine_type
 
+    workload_metadata_config {
+      node_metadata = "GKE_METADATA_SERVER"
+    }
+
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
@@ -85,5 +101,9 @@ resource "google_container_node_pool" "preemptible_nodes" {
     metadata = {
       disable-legacy-endpoints = true
     }
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
