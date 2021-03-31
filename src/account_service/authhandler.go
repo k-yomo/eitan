@@ -38,6 +38,12 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 		handleServerError(ctx, err, w)
 		return
 	}
+	// Logout from gothic since we manage session on our own
+	if err := gothic.Logout(w, r); err != nil {
+		handleServerError(ctx, err, w)
+		return
+	}
+
 	account, err := infra.AccountByEmail(ctx, a.db, user.Email)
 	if err != nil && err != sql.ErrNoRows {
 		handleServerError(ctx, err, w)
@@ -72,5 +78,14 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/profile", a.webAppURL), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("%s/account_settings", a.webAppURL), http.StatusFound)
+}
+
+func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	if err := a.sessionManager.Logout(w, r); err != nil {
+		handleServerError(r.Context(), err, w)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("%s/login", a.webAppURL), http.StatusFound)
 }

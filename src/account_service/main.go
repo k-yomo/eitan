@@ -20,7 +20,6 @@ import (
 	"github.com/k-yomo/eitan/src/pkg/csrf"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
@@ -71,12 +70,12 @@ func main() {
 	}).Methods("GET")
 
 	sessionManager := sessionmanager.NewSessionManager(newCookieStore(appConfig))
-	initGothicSessionStore(appConfig.IsDeployedEnv(), appConfig.SessionKey)
 	goth.UseProviders(
 		google.New(appConfig.GoogleAuthClientKey, appConfig.GoogleAuthSecret, fmt.Sprintf("%s/auth/google/callback", appConfig.AppRootURL), "email", "profile"),
 	)
 
 	authHandler := NewAuthHandler(sessionManager, db, pubsubClient, appConfig.WebAppURL)
+	r.HandleFunc("/auth/logout", authHandler.Logout).Methods("GET")
 	r.HandleFunc("/auth/{provider}", authHandler.HandleOAuth).Methods("GET")
 	r.HandleFunc("/auth/{provider}/callback", authHandler.HandleOAuthCallback).Methods("GET")
 
@@ -129,17 +128,6 @@ func withCors(allowedOrigins []string) func(http.Handler) http.Handler {
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowCredentials(),
 	)
-}
-
-func initGothicSessionStore(isProd bool, sessionKey string) {
-	maxAge := 90 * 24 * 60 * 60 // 90 days
-	// TODO: use in-memory db to store session to be able to revoke
-	store := sessions.NewCookieStore([]byte(sessionKey))
-	store.MaxAge(maxAge)
-	store.Options.HttpOnly = true
-	store.Options.Secure = isProd
-
-	gothic.Store = store
 }
 
 func newCookieStore(appConfig *config.AppConfig) *sessions.CookieStore {

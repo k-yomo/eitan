@@ -1,8 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
-import { FaGoogle } from 'react-icons/fa';
-import { routes } from '../constants/routes';
-import { GOOGLE_LOGIN_URL } from '../constants/api';
 import { CurrentAccountProps, withAuth } from '@src/lib/auth';
 import { NextPage } from 'next';
 

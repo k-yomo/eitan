@@ -4,4 +4,5 @@ export const routes = {
     `/login?originalUrl=${originalPath}`,
   signUp: () => '/sign_up',
   passwordReset: () => '/password_reset',
+  accountSettings: () => 'account_settings'
 };

@@ -6,3 +6,4 @@ export const GRAPHQL_API_URL =
   'http://api.local.eitan-flash.com:5000';
 
 export const GOOGLE_LOGIN_URL = `${AUTH_API_URL}/auth/google`;
+export const LOGOUT_URL = `${AUTH_API_URL}/auth/logout`;

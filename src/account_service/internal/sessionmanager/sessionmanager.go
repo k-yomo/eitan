@@ -17,6 +17,7 @@ type SessionManager interface {
 }
 
 type sessionManagerImpl struct {
+	// TODO: replace with in-memory db for storing session to be able to revoke
 	cookieStore         *sessions.CookieStore
 }
 

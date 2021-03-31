@@ -37,8 +37,8 @@ export function withAuth(WrappedComponent: NextPage<any>) {
           return <></>;
         }
         // TODO: Show error page
-        return <>Internal server error</>;
       }
+      return <div>Internal server error</div>;
     }
 
     const propsWithCurrentUser = {
