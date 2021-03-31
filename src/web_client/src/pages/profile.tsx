@@ -1,12 +1,14 @@
-import React from 'react'
-import Link from 'next/link'
-import { FaGoogle } from "react-icons/fa"
-import { routes } from '../constants/routes'
-import { GOOGLE_LOGIN_URL } from "../constants/api"
-import { CurrentAccountProps, withAuth } from "@src/lib/auth"
-import { NextPage } from "next"
+import React from 'react';
+import Link from 'next/link';
+import { FaGoogle } from 'react-icons/fa';
+import { routes } from '../constants/routes';
+import { GOOGLE_LOGIN_URL } from '../constants/api';
+import { CurrentAccountProps, withAuth } from '@src/lib/auth';
+import { NextPage } from 'next';
 
-const ProfilePage: NextPage<CurrentAccountProps> = ({ currentAccount }: CurrentAccountProps) => {
+const ProfilePage: NextPage<CurrentAccountProps> = ({
+  currentAccount,
+}: CurrentAccountProps) => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <div className="grid place-items-center mx-2 md:my-20 my-10">
@@ -23,7 +25,7 @@ const ProfilePage: NextPage<CurrentAccountProps> = ({ currentAccount }: CurrentA
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default withAuth(ProfilePage)
+export default withAuth(ProfilePage);

@@ -1,8 +1,8 @@
-import React from 'react'
-import Link from 'next/link'
-import { FaGoogle } from "react-icons/fa"
-import { routes } from '../constants/routes'
-import { GOOGLE_LOGIN_URL } from "../constants/api"
+import React from 'react';
+import Link from 'next/link';
+import { FaGoogle } from 'react-icons/fa';
+import { routes } from '../constants/routes';
+import { GOOGLE_LOGIN_URL } from '../constants/api';
 
 export default function LoginPage() {
   return (
@@ -74,25 +74,20 @@ export default function LoginPage() {
           {/*</form>*/}
           <Link href={GOOGLE_LOGIN_URL}>
             <a>
-              <button
-                className="flex flex-row items-center justify-center w-full space-x-2 my-6 p-3 rounded-sm text-md bg-gray-100 hover:bg-gray-200">
-                <FaGoogle/>
-                <div>
-                  Sign Up with Google
-                </div>
+              <button className="flex flex-row items-center justify-center w-full space-x-2 my-6 p-3 rounded-sm text-md bg-gray-100 hover:bg-gray-200">
+                <FaGoogle />
+                <div>Sign Up with Google</div>
               </button>
             </a>
           </Link>
           <div className="mt-8 sm:mb-4 text-sm text-right">
             Have an account?{' '}
             <Link href={routes.login()}>
-              <a className="flex-2 underline">
-                Log in
-              </a>
+              <a className="flex-2 underline">Log in</a>
             </Link>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

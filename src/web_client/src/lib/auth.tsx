@@ -1,15 +1,19 @@
-import React from "react";
-import { NextPage } from "next";
-import { useRouter } from "next/router";
-import { routes } from "@src/constants/routes";
-import { AccountInfoFragment, ErrorCode, useCurrentAccountQuery } from "@src/generated/graphql"
+import React from 'react';
+import { NextPage } from 'next';
+import { useRouter } from 'next/router';
+import { routes } from '@src/constants/routes';
+import {
+  AccountInfoFragment,
+  ErrorCode,
+  useCurrentAccountQuery,
+} from '@src/generated/graphql';
 
 export interface CurrentAccountProps {
-  currentAccount: AccountInfoFragment,
+  currentAccount: AccountInfoFragment;
 }
 
 function isBrowser() {
-  return typeof window !== "undefined";
+  return typeof window !== 'undefined';
 }
 
 // Require the user to be authenticated in order to render the component.
@@ -33,7 +37,7 @@ export function withAuth(WrappedComponent: NextPage<any>) {
           return <></>;
         }
         // TODO: Show error page
-        return <>Internal server error</>
+        return <>Internal server error</>;
       }
     }
 

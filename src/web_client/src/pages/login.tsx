@@ -1,8 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
-import { FaGoogle } from "react-icons/fa";
+import { FaGoogle } from 'react-icons/fa';
 import { routes } from '../constants/routes';
-import { GOOGLE_LOGIN_URL } from "../constants/api"
+import { GOOGLE_LOGIN_URL } from '../constants/api';
 
 export default function LoginPage() {
   return (
@@ -55,39 +55,35 @@ export default function LoginPage() {
           {/*          focus:text-gray-500 focus:outline-none focus:border-gray-200"*/}
           {/*    required*/}
           {/*  />*/}
-            {/*<div className="flex-2 underline text-right">*/}
-            {/*  <Link href={routes.passwordReset()}>*/}
-            {/*    <a>*/}
-            {/*      パスワードをお忘れですか？*/}
-            {/*    </a>*/}
-            {/*  </Link>*/}
-            {/*</div>*/}
+          {/*<div className="flex-2 underline text-right">*/}
+          {/*  <Link href={routes.passwordReset()}>*/}
+          {/*    <a>*/}
+          {/*      パスワードをお忘れですか？*/}
+          {/*    </a>*/}
+          {/*  </Link>*/}
+          {/*</div>*/}
 
-            {/*<button*/}
-            {/*  type="submit"*/}
-            {/*  className="w-full py-3 mt-10 bg-gray-800 rounded-sm*/}
-            {/*        font-medium text-white uppercase*/}
-            {/*        focus:outline-none hover:bg-gray-700 hover:shadow-none"*/}
-            {/*>*/}
-            {/*  ログイン*/}
-            {/*</button>*/}
+          {/*<button*/}
+          {/*  type="submit"*/}
+          {/*  className="w-full py-3 mt-10 bg-gray-800 rounded-sm*/}
+          {/*        font-medium text-white uppercase*/}
+          {/*        focus:outline-none hover:bg-gray-700 hover:shadow-none"*/}
+          {/*>*/}
+          {/*  ログイン*/}
+          {/*</button>*/}
           {/*</form>*/}
           <Link href={GOOGLE_LOGIN_URL}>
             <a>
               <button className="flex flex-row items-center justify-center w-full space-x-2 my-6 p-3 rounded-sm text-md bg-gray-100 hover:bg-gray-200">
                 <FaGoogle />
-                <div>
-                  Log in with Google
-                </div>
+                <div>Log in with Google</div>
               </button>
             </a>
           </Link>
           <div className="mt-8 sm:mb-4 text-sm text-right">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href={routes.signUp()}>
-              <a className="flex-2 underline">
-                Sign Up
-              </a>
+              <a className="flex-2 underline">Sign Up</a>
             </Link>
           </div>
         </div>
