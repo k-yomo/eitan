@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -17,13 +16,12 @@ import (
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/sharedctx"
+	"github.com/k-yomo/eitan/src/internal/tracing"
 	"github.com/k-yomo/eitan/src/pkg/csrf"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/google"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -58,7 +56,9 @@ func main() {
 	}
 
 	if appConfig.IsDeployedEnv() {
-		initTracer(logger)
+		if err := tracing.InitTracer(); err != nil {
+			logger.Fatal("set trace provider failed", zap.Error(err))
+		}
 	}
 
 	r := newRouter(appConfig, logger)
@@ -95,7 +95,7 @@ func main() {
 	eg := errgroup.Group{}
 	eg.Go(func() error {
 		fmt.Println("Rest Server listening on port:", appConfig.RestPort)
-		return http.ListenAndServe(fmt.Sprintf(":%d", appConfig.RestPort), withCors(appConfig.AllowedOrigins)(r))
+		return http.ListenAndServe(fmt.Sprintf(":%d", appConfig.RestPort), r)
 	})
 	eg.Go(func() error {
 		fmt.Println("GRPC Server listening on port:", appConfig.GRPCPort)
@@ -108,26 +108,19 @@ func main() {
 	logger.Fatal(eg.Wait().Error())
 }
 
-func handleServerError(ctx context.Context, err error, w http.ResponseWriter) {
-	logging.Logger(ctx).Error(err.Error(), zap.Error(err))
-	w.WriteHeader(500)
-	w.Write([]byte(`{"status":"500"}`))
-}
-
 func newRouter(appConfig *config.AppConfig, logger *zap.Logger) *mux.Router {
 	r := mux.NewRouter()
-	r.Use(logging.NewMiddleware(appConfig.GCPProjectID, logger))
-	r.Use(csrf.NewCSRFValidationMiddleware(appConfig.IsDeployedEnv()))
-	return r
-}
-
-func withCors(allowedOrigins []string) func(http.Handler) http.Handler {
-	return handlers.CORS(
-		handlers.AllowedOrigins(allowedOrigins),
+	corsMiddleware := handlers.CORS(
+		handlers.AllowedOrigins(appConfig.AllowedOrigins),
 		handlers.AllowedHeaders([]string{"X-Requested-By", "Origin", "Authorization", "Accept", "Content-Type"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowCredentials(),
 	)
+
+	r.Use(corsMiddleware)
+	r.Use(logging.NewMiddleware(appConfig.GCPProjectID, logger))
+	r.Use(csrf.NewCSRFValidationMiddleware(appConfig.IsDeployedEnv()))
+	return r
 }
 
 func newCookieStore(appConfig *config.AppConfig) *sessions.CookieStore {
@@ -141,16 +134,4 @@ func newCookieStore(appConfig *config.AppConfig) *sessions.CookieStore {
 		SameSite: http.SameSiteLaxMode,
 	}
 	return cookieStore
-}
-
-func initTracer(logger *zap.Logger) {
-	exporter, err := texporter.NewExporter()
-	if err != nil {
-		logger.Fatal("initialize exporter failed", zap.Error(err))
-	}
-	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
-	if err != nil {
-		logger.Fatal("initialize provider failed", zap.Error(err))
-	}
-	otel.SetTracerProvider(tp)
 }

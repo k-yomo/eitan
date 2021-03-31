@@ -1,16 +1,18 @@
 package main
 
 import (
-	"cloud.google.com/go/pubsub"
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/k-yomo/eitan/src/account_service/infra"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
 	"github.com/k-yomo/eitan/src/pkg/clock"
+	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
 	"github.com/k-yomo/eitan/src/pkg/uuid"
 	"github.com/markbates/goth/gothic"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 )
@@ -19,12 +21,11 @@ type AuthHandler struct {
 	sessionManager sessionmanager.SessionManager
 	db             *sqlx.DB
 	txManager      tx.Manager
-	pubsubClient   *pubsub.Client
 	webAppURL      string
 }
 
-func NewAuthHandler(sessionManager sessionmanager.SessionManager, db *sqlx.DB, pubsubClient *pubsub.Client, webAppURL string) *AuthHandler {
-	return &AuthHandler{sessionManager: sessionManager, db: db, pubsubClient: pubsubClient, webAppURL: webAppURL}
+func NewAuthHandler(sessionManager sessionmanager.SessionManager, db *sqlx.DB, webAppURL string) *AuthHandler {
+	return &AuthHandler{sessionManager: sessionManager, db: db, webAppURL: webAppURL}
 }
 
 func (a *AuthHandler) HandleOAuth(w http.ResponseWriter, r *http.Request) {
@@ -88,4 +89,10 @@ func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("%s/login", a.webAppURL), http.StatusFound)
+}
+
+func handleServerError(ctx context.Context, err error, w http.ResponseWriter) {
+	logging.Logger(ctx).Error(err.Error(), zap.Error(err))
+	w.WriteHeader(500)
+	w.Write([]byte(`{"status":"500"}`))
 }

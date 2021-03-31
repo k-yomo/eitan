@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
@@ -19,12 +18,11 @@ import (
 	"github.com/k-yomo/eitan/src/eitan_service/internal/csrf"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/sharedctx"
+	"github.com/k-yomo/eitan/src/internal/tracing"
 	"github.com/k-yomo/eitan/src/pkg/gqlopentelemetry"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -52,7 +50,9 @@ func main() {
 	}
 
 	if appConfig.IsDeployedEnv() {
-		initTracer(logger)
+		if err := tracing.InitTracer(); err != nil {
+			logger.Fatal("set trace provider failed", zap.Error(err))
+		}
 	}
 
 	db, err := sqlx.Connect(dbConfig.Driver, dbConfig.Dsn())
@@ -88,7 +88,7 @@ func main() {
 	}
 
 	log.Printf("server listening on port: %d", appConfig.Port)
-	logger.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Port), withCors(appConfig.AllowedOrigins)(r)).Error())
+	logger.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Port), r).Error())
 }
 
 func newAccountServiceClient(ctx context.Context, accountServiceGRPCURL string, isDeployedEnv bool) (client eitan.AccountServiceClient, closeConn func()) {
@@ -120,29 +120,16 @@ func grpcOptions(isDeployedEnv bool) []grpc.DialOption {
 
 func newRouter(appConfig *config.AppConfig, logger *zap.Logger) *mux.Router {
 	r := mux.NewRouter()
-	r.Use(logging.NewMiddleware(appConfig.GCPProjectID, logger))
-	r.Use(csrf.NewCSRFCheckMiddleware(appConfig.IsDeployedEnv()))
-	r.Use(auth.NewSessionIDMiddleware())
-	return r
-}
-
-func withCors(allowedOrigins []string) func(http.Handler) http.Handler {
-	return handlers.CORS(
-		handlers.AllowedOrigins(allowedOrigins),
+	corsMiddleware := handlers.CORS(
+		handlers.AllowedOrigins(appConfig.AllowedOrigins),
 		handlers.AllowedHeaders([]string{"X-Requested-By", "Origin", "Authorization", "Accept", "Content-Type"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowCredentials(),
 	)
-}
 
-func initTracer(logger *zap.Logger) {
-	exporter, err := texporter.NewExporter()
-	if err != nil {
-		logger.Fatal("initialize exporter failed", zap.Error(err))
-	}
-	tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
-	if err != nil {
-		logger.Fatal("initialize provider failed", zap.Error(err))
-	}
-	otel.SetTracerProvider(tp)
+	r.Use(corsMiddleware)
+	r.Use(logging.NewMiddleware(appConfig.GCPProjectID, logger))
+	r.Use(csrf.NewCSRFCheckMiddleware(appConfig.IsDeployedEnv()))
+	r.Use(auth.NewSessionIDMiddleware())
+	return r
 }
