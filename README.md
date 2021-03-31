@@ -20,6 +20,12 @@ $ vim .env
 ```
 
 ## Run servers
+- Run local servers and DB on docker
 ```sh
 $ make run
+```
+
+- Run everything on docker
+```sh
+$ make run-dc
 ```

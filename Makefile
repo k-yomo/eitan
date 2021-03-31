@@ -2,12 +2,18 @@
 .PHONY: setup
 setup:
 	GO111MODULE=off go get -u github.com/cosmtrek/air
+	GO111MODULE=off go get -u github.com/mattn/goreman
 	go mod download
 	cd src/web_client; yarn
 
 
 .PHONY: run
 run:
+	goreman -set-ports=false start
+	open http://local.eitan-flash.com:3000
+
+.PHONY: run-dc
+run-dc:
 	docker-compose up
 	open http://local.eitan-flash.com:3000
 

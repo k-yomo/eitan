@@ -16,3 +16,6 @@
 
 # env
 .env
+
+# temp files
+**/tmp
