@@ -7,6 +7,7 @@ resource "google_project_service" "enable_api" {
     "container.googleapis.com",
     "monitoring.googleapis.com",
     "cloudtrace.googleapis.com",
+    "redis.googleapis.com",
   ])
   project = var.project
   service = each.value

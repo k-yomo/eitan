@@ -20,6 +20,7 @@ type AppConfig struct {
 	Port           int      `default:"5000"`
 	GCPProjectID   string   `default:"local" envconfig:"GCP_PROJECT_ID"`
 	AllowedOrigins []string `default:"http://local.eitan-flash.com:3000" envconfig:"ALLOWED_ORIGINS"`
+	RedisURL       string   `default:"localhost:6379" envconfig:"REDIS_URL"`
 }
 
 func NewAppConfig() (*AppConfig, error) {

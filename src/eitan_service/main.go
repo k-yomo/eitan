@@ -7,6 +7,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -62,6 +63,13 @@ func main() {
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
 	defer db.Close()
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: appConfig.RedisURL,
+	})
+	if _, err := redisClient.Ping(context.Background()).Result(); err != nil {
+		logger.Fatal("initialize redis client failed", zap.Error(err))
+	}
 
 	accountServiceClient, closeAccountServiceClient := newAccountServiceClient(context.Background(), apiConfig.AccountServiceGRPCURL, appConfig.IsDeployedEnv())
 	defer closeAccountServiceClient()

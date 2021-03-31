@@ -14,6 +14,11 @@ services:
       MYSQL_USER: mysql
       MYSQL_PASSWORD: mysql
 
+  redis:
+    image: redis:5.0
+    ports:
+      - 6379:6379
+
   web_client:
     build:
       context: .
@@ -56,6 +61,7 @@ services:
     environment:
       DB_URL: db:3306
       ACCOUNT_SERVICE_GRPC_URL: account_service:4040
+      REDIS_URL: redis:6379
     depends_on:
       - account_service
 

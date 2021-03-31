@@ -9,8 +9,8 @@ setup:
 
 .PHONY: run
 run:
-	goreman -set-ports=false start
 	open http://local.eitan-flash.com:3000
+	goreman -set-ports=false start
 
 .PHONY: run-dc
 run-dc:
