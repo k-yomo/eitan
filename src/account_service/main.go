@@ -50,11 +50,6 @@ func main() {
 		logger.Fatal("initialize db failed", zap.Error(err))
 	}
 
-	pubsubClient, err := pubsub.NewClient(context.Background(), appConfig.GCPProjectID)
-	if err != nil {
-		logger.Fatal("initialize pubsub client failed", zap.Error(err))
-	}
-
 	if appConfig.IsDeployedEnv() {
 		if err := tracing.InitTracer(); err != nil {
 			logger.Fatal("set trace provider failed", zap.Error(err))
@@ -74,7 +69,7 @@ func main() {
 		google.New(appConfig.GoogleAuthClientKey, appConfig.GoogleAuthSecret, fmt.Sprintf("%s/auth/google/callback", appConfig.AppRootURL), "email", "profile"),
 	)
 
-	authHandler := NewAuthHandler(sessionManager, db, pubsubClient, appConfig.WebAppURL)
+	authHandler := NewAuthHandler(sessionManager, db, appConfig.WebAppURL)
 	r.HandleFunc("/auth/logout", authHandler.Logout).Methods("GET")
 	r.HandleFunc("/auth/{provider}", authHandler.HandleOAuth).Methods("GET")
 	r.HandleFunc("/auth/{provider}/callback", authHandler.HandleOAuthCallback).Methods("GET")

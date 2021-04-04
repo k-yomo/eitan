@@ -1,5 +1,5 @@
 # build
-FROM golang:1.15-alpine as build
+FROM golang:1.16-alpine as build
 ENV GO111MODULE=on
 
 WORKDIR /go/src/app
