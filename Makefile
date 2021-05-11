@@ -9,6 +9,7 @@ setup:
 
 .PHONY: run
 run:
+	docker-compose up -d db pubsub datastore redis
 	open http://local.eitan-flash.com:3000
 	goreman -set-ports=false start
 

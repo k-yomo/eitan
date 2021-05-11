@@ -1,13 +1,17 @@
 package main
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github.com/jmoiron/sqlx"
 	"github.com/k-yomo/eitan/src/account_service/infra"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
+	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/pkg/clock"
+	"github.com/k-yomo/eitan/src/pkg/event"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
 	"github.com/k-yomo/eitan/src/pkg/uuid"
@@ -21,11 +25,12 @@ type AuthHandler struct {
 	sessionManager sessionmanager.SessionManager
 	db             *sqlx.DB
 	txManager      tx.Manager
+	pubsubClient   *pubsub.Client
 	webAppURL      string
 }
 
-func NewAuthHandler(sessionManager sessionmanager.SessionManager, db *sqlx.DB, webAppURL string) *AuthHandler {
-	return &AuthHandler{sessionManager: sessionManager, db: db, webAppURL: webAppURL}
+func NewAuthHandler(sessionManager sessionmanager.SessionManager, db *sqlx.DB, pubsubClient *pubsub.Client, webAppURL string) *AuthHandler {
+	return &AuthHandler{sessionManager: sessionManager, db: db, pubsubClient: pubsubClient, webAppURL: webAppURL}
 }
 
 func (a *AuthHandler) HandleOAuth(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +56,7 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Create account
+	// Create account if not exist
 	if err == sql.ErrNoRows {
 		now := clock.Now()
 		var screenImgURL sql.NullString
@@ -68,9 +73,9 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
-		if err := account.Insert(ctx, a.db); err != nil {
+
+		if err := a.createAccount(ctx, account); err != nil {
 			handleServerError(ctx, err, w)
-			return
 		}
 	}
 
@@ -80,6 +85,34 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("%s/account_settings", a.webAppURL), http.StatusFound)
+}
+
+func (a *AuthHandler) createAccount(ctx context.Context, account *infra.Account) error {
+	logger := logging.Logger(ctx)
+
+	if err := account.Insert(ctx, a.db); err != nil {
+		return err
+	}
+
+	m := eitan.AccountRegistrationEvent{
+		AccountId:   account.ID,
+		Provider:    account.Provider,
+		Email:       account.Email,
+		DisplayName: account.DisplayName,
+	}
+	mBytes, err := proto.Marshal(&m)
+	if err != nil {
+		logger.Error("marshal AccountRegistrationEvent failed", zap.Error(err))
+	} else {
+		// TODO: retry publishing
+		t := a.pubsubClient.Topic(event.AccountRegistrationTopicName)
+		if _, err := t.Publish(ctx, &pubsub.Message{Data: mBytes}).Get(ctx); err != nil {
+			logger.Error("publish AccountRegistrationEvent failed", zap.Error(err), zap.String("AccountRegistrationEvent", m.String()))
+		}
+		logger.Debug("published AccountRegistrationEvent", zap.Error(err))
+	}
+
+	return nil
 }
 
 func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {

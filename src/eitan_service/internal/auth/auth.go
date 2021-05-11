@@ -19,9 +19,7 @@ func NewSessionIDMiddleware() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			c, err := r.Cookie(session.CookieSessionKey)
-			if err != nil {
-				logging.Logger(ctx).Error("Get session id from cookie failed", zap.Error(err))
-			} else {
+			if err == nil {
 				r = r.WithContext(session.SetSessionID(ctx, c.Value))
 			}
 

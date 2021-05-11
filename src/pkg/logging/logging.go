@@ -23,7 +23,7 @@ func NewLogger(isDev bool) (*zap.Logger, error) {
 	var logger *zap.Logger
 	var err error
 	if isDev {
-		config := zapdriver.NewDevelopmentConfig()
+		config := zap.NewDevelopmentConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		logger, err = config.Build()
 	} else {

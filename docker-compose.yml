@@ -14,6 +14,20 @@ services:
       MYSQL_USER: mysql
       MYSQL_PASSWORD: mysql
 
+  pubsub:
+    image: google/cloud-sdk:latest
+    command: gcloud beta emulators pubsub start --project=local --host-port=0.0.0.0:8085
+    ports:
+      - 8085:8085
+
+  datastore:
+    image: google/cloud-sdk:latest
+    command: gcloud beta emulators datastore start --project=local  --host-port=0.0.0.0:8081
+    ports:
+      - 8081:8081
+    environment:
+      DATASTORE_PROJECT_ID: local
+
   redis:
     image: redis:5.0
     ports:
@@ -44,8 +58,10 @@ services:
       - .env
     environment:
       DB_URL: db:3306
+      PUBSUB_EMULATOR_HOST: pubsub:8085
     depends_on:
       - db
+      - redis
 
   eitan_service:
     build:
@@ -63,6 +79,24 @@ services:
       ACCOUNT_SERVICE_GRPC_URL: account_service:4040
       REDIS_URL: redis:6379
     depends_on:
+      - account_service
+
+  notificatoin_servie:
+    build:
+      context: .
+      dockerfile: notification_service.dev.Dockerfile
+    volumes:
+      - ./src/eitan_service:/go/src/app
+    ports:
+      - 5000:5000
+    env_file:
+      - .env.public
+      - .env
+    environment:
+      PUBSUB_EMULATOR_HOST: pubsub:8085
+      DATASTORE_EMULATOR_HOST: datastore:8081
+    depends_on:
+      - datastore
       - account_service
 
 volumes:
