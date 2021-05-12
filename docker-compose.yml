@@ -86,9 +86,7 @@ services:
       context: .
       dockerfile: notification_service.dev.Dockerfile
     volumes:
-      - ./src/eitan_service:/go/src/app
-    ports:
-      - 5000:5000
+      - ./src/notification_service:/go/src/app
     env_file:
       - .env.public
       - .env

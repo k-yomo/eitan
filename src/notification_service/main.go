@@ -57,8 +57,7 @@ func main() {
 
 	var emailClient email.Client
 	if appConfig.IsDeployedEnv() {
-		sendGridClient := sendgrid.NewSendClient(appConfig.GCPProjectID)
-		emailClient = email.NewSendgridEmailClient(sendGridClient)
+		emailClient = email.NewSendgridEmailClient(sendgrid.NewSendClient(appConfig.GCPProjectID))
 	} else {
 		emailClient = email.NewNoopEmailClient()
 	}
