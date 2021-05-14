@@ -4,10 +4,10 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -50,6 +50,10 @@ func main() {
 		logger.Fatal("initialize db failed", zap.Error(err))
 	}
 
+	redisClient := redis.NewClient(&redis.Options{Addr: appConfig.RedisURL})
+
+	sessionManager := sessionmanager.NewSessionManager(appConfig, redisClient)
+
 	pubsubClient, err := pubsub.NewClient(context.Background(), appConfig.GCPProjectID)
 	if err != nil {
 		logger.Fatal("initialize pubsub client failed", zap.Error(err))
@@ -70,7 +74,6 @@ func main() {
 		w.Write([]byte(`{"status":"200"}`))
 	}).Methods("GET")
 
-	sessionManager := sessionmanager.NewSessionManager(newCookieStore(appConfig))
 	goth.UseProviders(
 		google.New(appConfig.GoogleAuthClientKey, appConfig.GoogleAuthSecret, fmt.Sprintf("%s/auth/google/callback", appConfig.AppRootURL), "email", "profile"),
 	)
@@ -122,17 +125,4 @@ func newRouter(appConfig *config.AppConfig, logger *zap.Logger) *mux.Router {
 	r.Use(logging.NewMiddleware(appConfig.GCPProjectID, logger))
 	r.Use(csrf.NewCSRFValidationMiddleware(appConfig.IsDeployedEnv()))
 	return r
-}
-
-func newCookieStore(appConfig *config.AppConfig) *sessions.CookieStore {
-	cookieStore := sessions.NewCookieStore([]byte(appConfig.SessionKey))
-	cookieStore.Options = &sessions.Options{
-		Path:     "/",
-		Domain:   appConfig.SessionCookieDomain,
-		MaxAge:   60 * 60 * 24 * 365, // 1 year
-		Secure:   appConfig.IsDeployedEnv(),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-	return cookieStore
 }

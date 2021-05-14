@@ -28,6 +28,8 @@ type AppConfig struct {
 	GoogleAuthClientKey string `envconfig:"GOOGLE_AUTH_CLIENT_KEY"`
 	GoogleAuthSecret    string `envconfig:"GOOGLE_AUTH_SECRET"`
 
+	RedisURL string `default:"localhost:6379" envconfig:"REDIS_URL"`
+
 	WebAppURL string `default:"http://local.eitan-flash.com:3000" envconfig:"WEB_APP_URL"`
 }
 

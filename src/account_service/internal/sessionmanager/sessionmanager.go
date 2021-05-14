@@ -1,10 +1,15 @@
 package sessionmanager
 
 import (
+	"context"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/sessions"
+	"github.com/k-yomo/eitan/src/account_service/config"
 	"github.com/k-yomo/eitan/src/internal/session"
 	"github.com/k-yomo/eitan/src/pkg/logging"
+	"github.com/rbcervilla/redisstore/v8"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 )
 
@@ -17,8 +22,7 @@ type SessionManager interface {
 }
 
 type sessionManagerImpl struct {
-	// TODO: replace with in-memory db for storing session to be able to revoke
-	cookieStore         *sessions.CookieStore
+	redisStore *redisstore.RedisStore
 }
 
 type AuthenticatedUserInfo struct {
@@ -28,9 +32,22 @@ type AuthenticatedUserInfo struct {
 	ScreenImgURL *string
 }
 
-func NewSessionManager(cookieStore *sessions.CookieStore) SessionManager {
+func NewSessionManager(appConfig *config.AppConfig, redisClient *redis.Client) SessionManager {
+	redisStore, err := redisstore.NewRedisStore(context.Background(), redisClient)
+	if err != nil {
+		log.Fatal("failed to create redis store: ", err)
+	}
+	redisStore.Options(sessions.Options{
+		Path:     "/",
+		Domain:   appConfig.SessionCookieDomain,
+		MaxAge:   60 * 60 * 24 * 365, // 1 year
+		Secure:   appConfig.IsDeployedEnv(),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	redisStore.KeyPrefix("session:")
 	return &sessionManagerImpl{
-		cookieStore:         cookieStore,
+		redisStore: redisStore,
 	}
 }
 
@@ -41,7 +58,7 @@ func (s *sessionManagerImpl) Authenticate(sid string) (accountID string, err err
 		Name:  session.CookieSessionKey,
 		Value: sid,
 	})
-	sess, err := s.cookieStore.Get(&r, session.CookieSessionKey)
+	sess, err := s.redisStore.Get(&r, session.CookieSessionKey)
 	if err != nil {
 		return "", err
 	}
@@ -50,8 +67,8 @@ func (s *sessionManagerImpl) Authenticate(sid string) (accountID string, err err
 
 func (s *sessionManagerImpl) Login(w http.ResponseWriter, r *http.Request, accountID string) error {
 	ctx := r.Context()
-	sess := sessions.NewSession(s.cookieStore, session.CookieSessionKey)
-	sess, err := s.cookieStore.New(r, session.CookieSessionKey)
+	sess := sessions.NewSession(s.redisStore, session.CookieSessionKey)
+	sess, err := s.redisStore.New(r, session.CookieSessionKey)
 	if err != nil {
 		return err
 	}
@@ -65,7 +82,7 @@ func (s *sessionManagerImpl) Login(w http.ResponseWriter, r *http.Request, accou
 }
 
 func (s *sessionManagerImpl) Logout(w http.ResponseWriter, r *http.Request) error {
-	sess, err := s.cookieStore.Get(r, session.CookieSessionKey)
+	sess, err := s.redisStore.Get(r, session.CookieSessionKey)
 	if err != nil {
 		return err
 	}

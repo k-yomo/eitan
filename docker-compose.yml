@@ -58,6 +58,7 @@ services:
       - .env
     environment:
       DB_URL: db:3306
+      REDIS_URL: redis:6379
       PUBSUB_EMULATOR_HOST: pubsub:8085
     depends_on:
       - db

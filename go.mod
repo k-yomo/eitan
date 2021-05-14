@@ -24,15 +24,15 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/pkg/errors v0.9.1
+	github.com/rbcervilla/redisstore/v8 v8.0.0 // indirect
 	github.com/sendgrid/rest v2.6.3+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.10.0+incompatible
-	github.com/vektah/gqlparser/v2 v2.2.0
+	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.20.0
 	go.opentelemetry.io/otel v0.20.0
 	go.opentelemetry.io/otel/sdk v0.20.0
 	go.opentelemetry.io/otel/trace v0.20.0
 	go.uber.org/zap v1.16.0
-	golang.org/x/exp v0.0.0-20200331195152-e8c3332aa8e5 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
