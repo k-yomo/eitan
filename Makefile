@@ -26,7 +26,7 @@ gen-model:
 .PHONY: gen-graphql
 gen-graphql:
 	cd src/eitan_service; go generate ./...
-	cd src/web_client; yarn codegn
+	cd src/web_client; yarn codegen
 
 .PHONY: gen_proto
 gen-proto:
