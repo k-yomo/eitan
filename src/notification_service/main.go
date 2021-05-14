@@ -11,6 +11,7 @@ import (
 	"github.com/k-yomo/eitan/src/pkg/event"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/pm"
+	"github.com/k-yomo/pm/middleware/logging/pm_zap"
 	"github.com/k-yomo/pm/middleware/pm_autoack"
 	"github.com/k-yomo/pm/middleware/pm_recovery"
 	"github.com/pkg/errors"
@@ -50,6 +51,7 @@ func main() {
 		pubsubClient,
 		pm.WithSubscriptionInterceptor(
 			pm_recovery.SubscriptionInterceptor(),
+			pm_zap.SubscriptionInterceptor(logger),
 			pm_autoack.SubscriptionInterceptor(),
 		),
 	)

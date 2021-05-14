@@ -7,9 +7,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/notification_service/internal/email"
-	"github.com/k-yomo/eitan/src/pkg/logging"
+	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"go.uber.org/zap"
 )
 
 type NotificationHandler struct {
@@ -25,12 +24,9 @@ func NewNotificationHandler(dsClient *datastore.Client, emailClient email.Client
 }
 
 func (n *NotificationHandler) HandleAccountRegistration(ctx context.Context, m *pubsub.Message) error {
-	logger := logging.Logger(ctx)
-
 	accountRegistrationEvent := eitan.AccountRegistrationEvent{}
 	if err := proto.Unmarshal(m.Data, &accountRegistrationEvent); err != nil {
-		logger.Error("unmarshal AccountRegistrationEvent failed", zap.Error(err))
-		return err
+		return errors.Wrap(err, "proto.Unmarshal")
 	}
 
 	sgmail := mail.NewSingleEmail(
@@ -69,8 +65,7 @@ Eitan Team
 		return nil
 	})
 	if err != nil {
-		logger.Error("process AccountRegistrationEvent failed", zap.Error(err), zap.String("event", accountRegistrationEvent.String()))
-		return err
+		return errors.Wrap(err, "process AccountRegistrationEvent")
 	}
 
 	return nil

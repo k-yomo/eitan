@@ -18,7 +18,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/jmoiron/sqlx v1.3.3
-	github.com/k-yomo/pm v0.1.0
+	github.com/k-yomo/pm v0.1.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/markbates/goth v1.67.1
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
@@ -31,11 +31,14 @@ require (
 	go.opentelemetry.io/otel v0.20.0
 	go.opentelemetry.io/otel/sdk v0.20.0
 	go.opentelemetry.io/otel/trace v0.20.0
-	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	golang.org/x/exp v0.0.0-20200331195152-e8c3332aa8e5 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	google.golang.org/grpc v1.37.0
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	golang.org/x/tools v0.1.1 // indirect
+	google.golang.org/api v0.46.0 // indirect
+	google.golang.org/grpc v1.37.1
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
