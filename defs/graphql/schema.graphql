@@ -4,7 +4,7 @@ type Query {
     node(id: ID!): Node
     nodes(ids: [ID!]!): [Node]!
 
-    currentAccount: Account! @hasRole(role: USER)
+    currentUserProfile: UserProfile! @hasRole(role: USER)
 }
 
 directive @hasRole(role: Role!) on FIELD_DEFINITION
@@ -26,14 +26,14 @@ interface Node {
     id: ID!
 }
 
-type Account implements Node {
+type UserProfile implements Node {
     id: ID!
     email: String!
     displayName: String!
     screenImgUrl: String
 }
 
-type AccountPublic implements Node {
+type UserProfilePublic implements Node {
     id: ID!
     displayName: String!
     screenImgUrl: String

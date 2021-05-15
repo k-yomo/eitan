@@ -28,6 +28,8 @@ func NewSessionIDMiddleware() func(next http.Handler) http.Handler {
 	}
 }
 
+type authenticatedUserIDKey struct {}
+
 // NewHasRole returns a function to authenticate user based on role
 // role is defined at defs/graphql/schema.graphql
 func NewHasRole(accountServiceClient eitan.AccountServiceClient) func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error) {
@@ -46,19 +48,15 @@ func NewHasRole(accountServiceClient eitan.AccountServiceClient) func(ctx contex
 			} else if err != nil {
 				return nil, customerror.New(err, customerror.ErrInternal)
 			}
-			logging.Logger(ctx).Info("Authenticated", zap.String("accountID", res.Account.Id))
-			ctx = context.WithValue(ctx, authenticatedAccountIDKey, res.Account.Id)
+			logging.Logger(ctx).Info("Authenticated", zap.String("userID", res.UserProfile.UserId))
+			ctx = context.WithValue(ctx, authenticatedUserIDKey{}, res.UserProfile.UserId)
 		}
 		return next(ctx)
 	}
 }
 
-type authenticatedAccountIDCtxKey int
-
-var authenticatedAccountIDKey authenticatedAccountIDCtxKey
-
-// GetAccountID extract user id from context
-func GetAccountID(ctx context.Context) (string, bool) {
-	userID, ok := ctx.Value(authenticatedAccountIDKey).(string)
+// GetUserID extract user id from context
+func GetUserID(ctx context.Context) (string, bool) {
+	userID, ok := ctx.Value(authenticatedUserIDKey{}).(string)
 	return userID, ok
 }

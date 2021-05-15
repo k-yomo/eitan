@@ -74,7 +74,7 @@ func main() {
 	accountServiceClient, closeAccountServiceClient := newAccountServiceClient(context.Background(), apiConfig.AccountServiceGRPCURL, appConfig.IsDeployedEnv())
 	defer closeAccountServiceClient()
 
-	gqlConfig := gql.Config{Resolvers: graph.NewResolver(db, tx.NewManager(db), accountServiceClient)}
+	gqlConfig := gql.Config{Resolvers: graph.NewResolver(db, tx.NewManager(db), accountServiceClient, redisClient)}
 	gqlConfig.Directives.HasRole = auth.NewHasRole(accountServiceClient)
 	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gqlConfig))
 	srv.SetErrorPresenter(graph.NewErrorPresenter())
@@ -103,7 +103,7 @@ func newAccountServiceClient(ctx context.Context, accountServiceGRPCURL string, 
 
 func grpcOptions(isDeployedEnv bool) []grpc.DialOption {
 	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithUnaryInterceptor(sharedctx.NewUnaryClientCurrentAccountInterceptor(auth.GetAccountID)))
+	opts = append(opts, grpc.WithUnaryInterceptor(sharedctx.NewUnaryClientCurrentUserInterceptor(auth.GetUserID)))
 	if isDeployedEnv {
 		creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
 		gapsTraceInterceptor := otelgrpc.UnaryClientInterceptor()

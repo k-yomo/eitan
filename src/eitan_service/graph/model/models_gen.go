@@ -12,22 +12,22 @@ type Node interface {
 	IsNode()
 }
 
-type Account struct {
+type UserProfile struct {
 	ID           string  `json:"id"`
 	Email        string  `json:"email"`
 	DisplayName  string  `json:"displayName"`
 	ScreenImgURL *string `json:"screenImgUrl"`
 }
 
-func (Account) IsNode() {}
+func (UserProfile) IsNode() {}
 
-type AccountPublic struct {
+type UserProfilePublic struct {
 	ID           string  `json:"id"`
 	DisplayName  string  `json:"displayName"`
 	ScreenImgURL *string `json:"screenImgUrl"`
 }
 
-func (AccountPublic) IsNode() {}
+func (UserProfilePublic) IsNode() {}
 
 type ErrorCode string
 

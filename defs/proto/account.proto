@@ -4,16 +4,15 @@ package eitan;
 
 import "common.proto";
 
-message Account {
-    string id = 1;
-    string provider = 2;
-    string email = 3;
-    string display_name = 4;
-    optional string screen_img_url = 5;
+message UserProfile {
+    string user_id = 1;
+    string email = 2;
+    string display_name = 3;
+    optional string screen_img_url = 4;
 }
 
-message AccountRegistrationEvent {
-    string account_id = 1;
+message UserRegistrationEvent {
+    string user_id = 1;
     string provider = 2;
     string email = 3;
     string display_name = 4;
@@ -24,16 +23,16 @@ message AuthenticateRequest {
 }
 
 message AuthenticateResponse {
-    Account account = 1;
+    UserProfile user_profile = 1;
 }
 
-message GetCurrentAccountResponse {
-    Account account = 1;
+message GetCurrentUserProfileResponse {
+    UserProfile user_profile = 1;
 }
 
 service AccountService {
     rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {
     }
-    rpc GetCurrentAccount (Empty) returns (GetCurrentAccountResponse) {
+    rpc GetCurrentUserProfile (Empty) returns (GetCurrentUserProfileResponse) {
     }
 }

@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { Menu, Transition } from '@headlessui/react';
-import { useCurrentAccountQuery } from '@src/generated/graphql';
+import { useCurrentUserProfileQuery } from '@src/generated/graphql';
 import { routes } from '@src/constants/routes';
-import { CurrentAccountProps } from '@src/lib/auth';
+import { CurrentUserProfileProps } from '@src/lib/auth';
 import { LOGOUT_URL } from '@src/constants/api';
 
 export default function Header() {
@@ -33,7 +33,7 @@ export default function Header() {
 }
 
 const RightNav = () => {
-  const { data, loading, error } = useCurrentAccountQuery();
+  const { data, loading, error } = useCurrentUserProfileQuery();
   if (loading) {
     return <></>;
   }
@@ -44,8 +44,8 @@ const RightNav = () => {
 
   return (
     <>
-      {data && <AccountMenu currentAccount={data.currentAccount} />}
-      {(!data || !data.currentAccount) && (
+      {data && <UserMenu currentUserProfile={data.currentUserProfile} />}
+      {(!data || !data.currentUserProfile) && (
         <>
           <div className="md:flex items-center justify-end md:flex-1 lg:w-0">
             <Link href={routes.login()}>
@@ -65,7 +65,7 @@ const RightNav = () => {
   );
 };
 
-const AccountMenu = ({ currentAccount }: CurrentAccountProps) => {
+const UserMenu = ({ currentUserProfile }: CurrentUserProfileProps) => {
   return (
     <div className="md:flex items-center justify-end md:flex-1 ">
       <div className="relative inline-block text-left">
@@ -74,15 +74,15 @@ const AccountMenu = ({ currentAccount }: CurrentAccountProps) => {
             <>
               <span className="rounded-md shadow-sm">
                 <Menu.Button className="w-full px-4 py-2 text-sm font-medium leading-5 text-gray-700 transition duration-150 ease-in-out bg-white rounded-md hover:text-gray-500 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-50 active:text-gray-800">
-                  {currentAccount.screenImgUrl ? (
+                  {currentUserProfile.screenImgUrl ? (
                     <img
                       className="w-10 h-10 rounded-full"
-                      src={currentAccount.screenImgUrl}
-                      alt={currentAccount.displayName}
+                      src={currentUserProfile.screenImgUrl}
+                      alt={currentUserProfile.displayName}
                     />
                   ) : (
                     <div className="flex justify-center items-center bg-gray-100 w-10 h-10 rounded-full font-bold">
-                      {currentAccount.displayName.substr(0, 1)}
+                      {currentUserProfile.displayName.substr(0, 1)}
                     </div>
                   )}
                 </Menu.Button>
@@ -104,7 +104,7 @@ const AccountMenu = ({ currentAccount }: CurrentAccountProps) => {
                   <div className="px-4 py-3">
                     <p className="text-sm leading-5">Logged in as</p>
                     <p className="text-sm font-medium leading-5 text-gray-900 truncate">
-                      {currentAccount.email}
+                      {currentUserProfile.email}
                     </p>
                   </div>
 
@@ -112,14 +112,14 @@ const AccountMenu = ({ currentAccount }: CurrentAccountProps) => {
                     <Menu.Item>
                       {({ active }) => (
                         <a
-                          href={routes.accountSettings()}
+                          href={routes.userSettings()}
                           className={`${
                             active
                               ? 'bg-gray-100 text-gray-900'
                               : 'text-gray-700'
                           } flex justify-between w-full px-4 py-2 text-sm leading-5 text-left`}
                         >
-                          Account settings
+                          User settings
                         </a>
                       )}
                     </Menu.Item>

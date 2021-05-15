@@ -23,19 +23,19 @@ func NewNotificationHandler(dsClient *datastore.Client, emailClient email.Client
 	}
 }
 
-func (n *NotificationHandler) HandleAccountRegistration(ctx context.Context, m *pubsub.Message) error {
-	accountRegistrationEvent := eitan.AccountRegistrationEvent{}
-	if err := proto.Unmarshal(m.Data, &accountRegistrationEvent); err != nil {
+func (n *NotificationHandler) HandleUserRegistration(ctx context.Context, m *pubsub.Message) error {
+	userRegistrationEvent := eitan.UserRegistrationEvent{}
+	if err := proto.Unmarshal(m.Data, &userRegistrationEvent); err != nil {
 		return errors.Wrap(err, "proto.Unmarshal")
 	}
 
 	sgmail := mail.NewSingleEmail(
-		&mail.Email{Name: accountRegistrationEvent.DisplayName, Address: accountRegistrationEvent.Email},
+		&mail.Email{Name: userRegistrationEvent.DisplayName, Address: userRegistrationEvent.Email},
 		"Welcome to Eitan!",
-		&mail.Email{Name: accountRegistrationEvent.DisplayName, Address: accountRegistrationEvent.Email},
+		&mail.Email{Name: userRegistrationEvent.DisplayName, Address: userRegistrationEvent.Email},
 		// TODO: fix body
 		`
-Dear ` + accountRegistrationEvent.DisplayName + `,
+Dear ` + userRegistrationEvent.DisplayName + `,
 
 Thank you for signing up for Eitan.
 
@@ -45,9 +45,9 @@ Eitan Team
 		"",
 	)
 
-	key := datastore.NameKey("AccountRegistrationEvent", accountRegistrationEvent.AccountId, nil)
+	key := datastore.NameKey("UserRegistrationEvent", userRegistrationEvent.UserId, nil)
 	_, err := n.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		if err := tx.Get(key, &eitan.AccountRegistrationEvent{}); err == nil {
+		if err := tx.Get(key, &eitan.UserRegistrationEvent{}); err == nil {
 			// entity exists means email already sent
 			return nil
 		} else {
@@ -56,7 +56,7 @@ Eitan Team
 			}
 		}
 
-		if _, err := tx.Put(key, &accountRegistrationEvent); err != nil {
+		if _, err := tx.Put(key, &userRegistrationEvent); err != nil {
 			return err
 		}
 		if err := n.emailClient.Send(ctx, sgmail); err != nil {
@@ -65,7 +65,7 @@ Eitan Team
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err, "process AccountRegistrationEvent")
+		return errors.Wrap(err, "process UserRegistrationEvent")
 	}
 
 	return nil

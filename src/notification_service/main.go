@@ -71,7 +71,7 @@ func main() {
 			logger.Fatal("create topics and subscription failed", zap.Error(err))
 		}
 	}
-	err = pubsubSubscriber.HandleSubscriptionFunc("notification-service-account-registration-sub", h.HandleAccountRegistration)
+	err = pubsubSubscriber.HandleSubscriptionFunc("notification.account.user-registration", h.HandleUserRegistration)
 	if err != nil {
 		logger.Fatal("set subscription handler failed", zap.Error(err))
 	}
@@ -87,24 +87,24 @@ func main() {
 
 func createTopicsAndSubs(pubsubClient *pubsub.Client) error {
 	ctx := context.Background()
-	t := pubsubClient.Topic(event.AccountRegistrationTopicName)
+	t := pubsubClient.Topic(event.UserRegistrationTopicName)
 	topicExist, err := t.Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, "check if topic exists failed")
 	}
 	if !topicExist {
-		t, err = pubsubClient.CreateTopic(ctx, event.AccountRegistrationTopicName)
+		t, err = pubsubClient.CreateTopic(ctx, event.UserRegistrationTopicName)
 		if err != nil {
 			return errors.Wrap(err, "create topic failed")
 		}
 	}
-	subExist, err := pubsubClient.Subscription("notification-service-account-registration-sub").Exists(ctx)
+	subExist, err := pubsubClient.Subscription("notification.account.user-registration").Exists(ctx)
 	if err != nil {
 		return errors.Wrap(err, "check if subscription exist failed")
 	}
 	if !subExist {
 		c := pubsub.SubscriptionConfig{Topic: t, AckDeadline: 10 * time.Minute}
-		if _, err := pubsubClient.CreateSubscription(ctx, "notification-service-account-registration-sub", c); err != nil {
+		if _, err := pubsubClient.CreateSubscription(ctx, "notification.account.user-registration", c); err != nil {
 			return errors.Wrap(err, "create subscription failed")
 		}
 	}

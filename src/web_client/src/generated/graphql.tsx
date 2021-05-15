@@ -19,19 +19,6 @@ export type Scalars = {
   Time: any;
 };
 
-export type Account = Node & {
-  id: Scalars['ID'];
-  email: Scalars['String'];
-  displayName: Scalars['String'];
-  screenImgUrl?: Maybe<Scalars['String']>;
-};
-
-export type AccountPublic = Node & {
-  id: Scalars['ID'];
-  displayName: Scalars['String'];
-  screenImgUrl?: Maybe<Scalars['String']>;
-};
-
 export enum ErrorCode {
   Unauthenticated = 'UNAUTHENTICATED',
   Unauthorized = 'UNAUTHORIZED',
@@ -48,7 +35,7 @@ export type Node = {
 export type Query = {
   node?: Maybe<Node>;
   nodes: Array<Maybe<Node>>;
-  currentAccount: Account;
+  currentUserProfile: UserProfile;
 };
 
 export type QueryNodeArgs = {
@@ -63,78 +50,93 @@ export enum Role {
   User = 'USER',
 }
 
-export type AccountInfoFragment = Pick<
-  Account,
+export type UserProfile = Node & {
+  id: Scalars['ID'];
+  email: Scalars['String'];
+  displayName: Scalars['String'];
+  screenImgUrl?: Maybe<Scalars['String']>;
+};
+
+export type UserProfilePublic = Node & {
+  id: Scalars['ID'];
+  displayName: Scalars['String'];
+  screenImgUrl?: Maybe<Scalars['String']>;
+};
+
+export type UserProfileInfoFragment = Pick<
+  UserProfile,
   'id' | 'email' | 'displayName' | 'screenImgUrl'
 >;
 
-export type CurrentAccountQueryVariables = Exact<{ [key: string]: never }>;
+export type CurrentUserProfileQueryVariables = Exact<{ [key: string]: never }>;
 
-export type CurrentAccountQuery = { currentAccount: AccountInfoFragment };
+export type CurrentUserProfileQuery = {
+  currentUserProfile: UserProfileInfoFragment;
+};
 
-export const AccountInfoFragmentDoc = gql`
-  fragment accountInfo on Account {
+export const UserProfileInfoFragmentDoc = gql`
+  fragment userProfileInfo on UserProfile {
     id
     email
     displayName
     screenImgUrl
   }
 `;
-export const CurrentAccountDocument = gql`
-  query currentAccount {
-    currentAccount {
-      ...accountInfo
+export const CurrentUserProfileDocument = gql`
+  query currentUserProfile {
+    currentUserProfile {
+      ...userProfileInfo
     }
   }
-  ${AccountInfoFragmentDoc}
+  ${UserProfileInfoFragmentDoc}
 `;
 
 /**
- * __useCurrentAccountQuery__
+ * __useCurrentUserProfileQuery__
  *
- * To run a query within a React component, call `useCurrentAccountQuery` and pass it any options that fit your needs.
- * When your component renders, `useCurrentAccountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCurrentUserProfileQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCurrentUserProfileQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCurrentAccountQuery({
+ * const { data, loading, error } = useCurrentUserProfileQuery({
  *   variables: {
  *   },
  * });
  */
-export function useCurrentAccountQuery(
+export function useCurrentUserProfileQuery(
   baseOptions?: Apollo.QueryHookOptions<
-    CurrentAccountQuery,
-    CurrentAccountQueryVariables
+    CurrentUserProfileQuery,
+    CurrentUserProfileQueryVariables
   >
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<CurrentAccountQuery, CurrentAccountQueryVariables>(
-    CurrentAccountDocument,
-    options
-  );
+  return Apollo.useQuery<
+    CurrentUserProfileQuery,
+    CurrentUserProfileQueryVariables
+  >(CurrentUserProfileDocument, options);
 }
-export function useCurrentAccountLazyQuery(
+export function useCurrentUserProfileLazyQuery(
   baseOptions?: Apollo.LazyQueryHookOptions<
-    CurrentAccountQuery,
-    CurrentAccountQueryVariables
+    CurrentUserProfileQuery,
+    CurrentUserProfileQueryVariables
   >
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<CurrentAccountQuery, CurrentAccountQueryVariables>(
-    CurrentAccountDocument,
-    options
-  );
+  return Apollo.useLazyQuery<
+    CurrentUserProfileQuery,
+    CurrentUserProfileQueryVariables
+  >(CurrentUserProfileDocument, options);
 }
-export type CurrentAccountQueryHookResult = ReturnType<
-  typeof useCurrentAccountQuery
+export type CurrentUserProfileQueryHookResult = ReturnType<
+  typeof useCurrentUserProfileQuery
 >;
-export type CurrentAccountLazyQueryHookResult = ReturnType<
-  typeof useCurrentAccountLazyQuery
+export type CurrentUserProfileLazyQueryHookResult = ReturnType<
+  typeof useCurrentUserProfileLazyQuery
 >;
-export type CurrentAccountQueryResult = Apollo.QueryResult<
-  CurrentAccountQuery,
-  CurrentAccountQueryVariables
+export type CurrentUserProfileQueryResult = Apollo.QueryResult<
+  CurrentUserProfileQuery,
+  CurrentUserProfileQueryVariables
 >;

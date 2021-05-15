@@ -20,6 +20,7 @@ run-dc:
 
 .PHONY: gen-model
 gen-model:
+	docker-compose up -d db
 	rm -f src/account_service/infra/*.xo.go
 	xo mysql://root@localhost:13306/accountdb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/account_service/infra
 

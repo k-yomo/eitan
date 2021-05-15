@@ -1,12 +1,12 @@
-fragment accountInfo on Account {
+fragment userProfileInfo on UserProfile {
     id
     email
     displayName
     screenImgUrl
 }
 
-query currentAccount {
-    currentAccount {
-        ...accountInfo
+query currentUserProfile {
+    currentUserProfile {
+        ...userProfileInfo
     }
 }

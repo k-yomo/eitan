@@ -245,6 +245,10 @@ github.com/jstemmer/go-junit-report v0.9.1 h1:6QPYqodiu3GuPL+7mfx+NwDdp2eTkp9IfE
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/k-yomo/pm v0.1.1 h1:E2ZB9dFkrhvunOafohATcECr8mnKwjGg+JQGJcWcrNI=
 github.com/k-yomo/pm v0.1.1/go.mod h1:0YR70OUiyQ3ZFLWM+67qIJd30RC1YJPu3zLQjdrvQl8=
+github.com/k-yomo/pm v0.1.2 h1:ekK4O9RikvKYD6dGQ6CbYmdulXgQyCSr+b9xtX6ynAg=
+github.com/k-yomo/pm v0.1.2/go.mod h1:pLpnwlxFmDQzOPlEohcSVucm6wpaNJVybVMFyF+xMlQ=
+github.com/k-yomo/rediskey v0.1.0 h1:3c9c4MzGboa4uphZ1I9H4AhxdLAwCRGDB/TWl9990dQ=
+github.com/k-yomo/rediskey v0.1.0/go.mod h1:b3t0CHCKTkGVCBgEJL52uPdfXUfkiKeb8mdKRTbt42g=
 github.com/kelseyhightower/envconfig v1.4.0 h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dvMUtDTo2cv8=
 github.com/kelseyhightower/envconfig v1.4.0/go.mod h1:cccZRl6mQpaq41TPp5QxidR+Sa3axMbJDNb//FQX6Gg=
 github.com/kisielk/errcheck v1.5.0 h1:e8esj/e4R+SAOwFwN+n3zr0nYeCyeweozKfO23MvHzY=

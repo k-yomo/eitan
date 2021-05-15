@@ -52,7 +52,10 @@ func main() {
 
 	redisClient := redis.NewClient(&redis.Options{Addr: appConfig.RedisURL})
 
-	sessionManager := sessionmanager.NewSessionManager(appConfig, redisClient)
+	sessionManager, err := sessionmanager.NewSessionManager(appConfig, redisClient)
+	if err != nil {
+		logger.Fatal("initialize session manager failed", zap.Error(err))
+	}
 
 	pubsubClient, err := pubsub.NewClient(context.Background(), appConfig.GCPProjectID)
 	if err != nil {
@@ -89,7 +92,7 @@ func main() {
 			otelgrpc.UnaryServerInterceptor(),
 			grpc_zap.UnaryServerInterceptor(logger),
 			logging.NewUnaryServerInterceptor(appConfig.GCPProjectID),
-			sharedctx.NewUnaryServerCurrentAccountInterceptor(),
+			sharedctx.NewUnaryServerCurrentUserInterceptor(),
 		),
 	)
 

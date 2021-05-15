@@ -18,7 +18,8 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/jmoiron/sqlx v1.3.3
-	github.com/k-yomo/pm v0.1.1
+	github.com/k-yomo/pm v0.1.2
+	github.com/k-yomo/rediskey v0.1.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/markbates/goth v1.67.1
 	github.com/mitchellh/mapstructure v1.4.1 // indirect

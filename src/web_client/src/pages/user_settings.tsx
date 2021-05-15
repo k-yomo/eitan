@@ -1,10 +1,10 @@
 import React from 'react';
-import { CurrentAccountProps, withAuth } from '@src/lib/auth';
+import { CurrentUserProfileProps, withAuth } from '@src/lib/auth';
 import { NextPage } from 'next';
 
-const ProfilePage: NextPage<CurrentAccountProps> = ({
-  currentAccount,
-}: CurrentAccountProps) => {
+const ProfilePage: NextPage<CurrentUserProfileProps> = ({
+  currentUserProfile,
+}: CurrentUserProfileProps) => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <div className="grid place-items-center mx-2 md:my-20 my-10">
@@ -17,7 +17,9 @@ const ProfilePage: NextPage<CurrentAccountProps> = ({
             Profile
           </h2>
 
-          <div className="text-center m-10">{currentAccount.displayName}</div>
+          <div className="text-center m-10">
+            {currentUserProfile.displayName}
+          </div>
         </div>
       </div>
     </div>

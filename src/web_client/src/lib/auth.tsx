@@ -3,13 +3,13 @@ import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { routes } from '@src/constants/routes';
 import {
-  AccountInfoFragment,
   ErrorCode,
-  useCurrentAccountQuery,
+  useCurrentUserProfileQuery,
+  UserProfileInfoFragment,
 } from '@src/generated/graphql';
 
-export interface CurrentAccountProps {
-  currentAccount: AccountInfoFragment;
+export interface CurrentUserProfileProps {
+  currentUserProfile: UserProfileInfoFragment;
 }
 
 function isBrowser() {
@@ -24,7 +24,7 @@ export function withAuth(WrappedComponent: NextPage<any>) {
       return <></>;
     }
     const router = useRouter();
-    const { data, loading, error } = useCurrentAccountQuery();
+    const { data, loading, error } = useCurrentUserProfileQuery();
 
     if (loading) {
       return <div>Loading...</div>;
@@ -43,7 +43,7 @@ export function withAuth(WrappedComponent: NextPage<any>) {
 
     const propsWithCurrentUser = {
       ...props,
-      currentAccount: data?.currentAccount,
+      currentUserProfile: data?.currentUserProfile,
     };
     return <WrappedComponent {...propsWithCurrentUser} />;
   };

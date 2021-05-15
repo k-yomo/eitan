@@ -30,43 +30,42 @@ func NewAccountServiceServer(db *sqlx.DB, sessionManager sessionmanager.SessionM
 }
 
 func (a *AccountServiceServer) Authenticate(ctx context.Context, req *eitan.AuthenticateRequest) (*eitan.AuthenticateResponse, error) {
-	accountID, err := a.sessionManager.Authenticate(req.SessionId)
+	userID, err := a.sessionManager.Authenticate(req.SessionId)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	account, err := infra.AccountByID(ctx, a.db, accountID)
+	userProfile, err := infra.UserProfileByUserID(ctx, a.db, userID)
 	if err == sql.ErrNoRows {
-		return nil, status.Error(codes.NotFound, fmt.Sprintf("account with id: %s not found", accountID))
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("userProfile with id: %s not found", userID))
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &eitan.AuthenticateResponse{Account: mapToGRPCAccount(account)}, nil
+	return &eitan.AuthenticateResponse{UserProfile: mapToGRPCUserProfile(userProfile)}, nil
 }
 
-func (a *AccountServiceServer) GetCurrentAccount(ctx context.Context, req *eitan.Empty) (*eitan.GetCurrentAccountResponse, error) {
-	accountID, ok := sharedctx.GetAccountID(ctx)
+func (a *AccountServiceServer) GetCurrentUserProfile(ctx context.Context, _ *eitan.Empty) (*eitan.GetCurrentUserProfileResponse, error) {
+	userID, ok := sharedctx.GetUserID(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
-	account, err := infra.AccountByID(ctx, a.db, accountID)
+	userProfile, err := infra.UserProfileByUserID(ctx, a.db, userID)
 	if err == sql.ErrNoRows {
-		return nil, status.Error(codes.NotFound, fmt.Sprintf("account with id: %s not found", accountID))
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("userProfile with id: '%s' not found", userID))
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &eitan.GetCurrentAccountResponse{Account: mapToGRPCAccount(account)}, nil
+	return &eitan.GetCurrentUserProfileResponse{UserProfile: mapToGRPCUserProfile(userProfile)}, nil
 }
 
-func mapToGRPCAccount(a *infra.Account) *eitan.Account {
-	return &eitan.Account{
-		Id:           a.ID,
-		Provider:     a.Provider,
-		Email:        a.Email,
-		DisplayName:  a.DisplayName,
-		ScreenImgUrl: sqlutil.NullStrToPtr(a.ScreenImgURL),
+func mapToGRPCUserProfile(up *infra.UserProfile) *eitan.UserProfile {
+	return &eitan.UserProfile{
+		UserId:       up.UserID,
+		Email:        up.Email,
+		DisplayName:  up.DisplayName,
+		ScreenImgUrl: sqlutil.NullStrToPtr(up.ScreenImgURL),
 	}
 }

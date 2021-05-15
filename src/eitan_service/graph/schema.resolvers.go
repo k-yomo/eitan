@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+
 	gql "github.com/k-yomo/eitan/src/eitan_service/graph/generated"
 	"github.com/k-yomo/eitan/src/eitan_service/graph/model"
 	"github.com/k-yomo/eitan/src/eitan_service/internal/customerror"
@@ -20,17 +21,17 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []string) ([]model.Node, 
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) CurrentAccount(ctx context.Context) (*model.Account, error) {
-	res, err := r.accountServiceClient.GetCurrentAccount(ctx, &eitan.Empty{})
+func (r *queryResolver) CurrentUserProfile(ctx context.Context) (*model.UserProfile, error) {
+	res, err := r.accountServiceClient.GetCurrentUserProfile(ctx, &eitan.Empty{})
 	if err != nil {
 		return nil, customerror.New(err, customerror.ErrInternal)
 	}
 
-	return &model.Account{
-		ID:           res.Account.Id,
-		Email:        res.Account.Email,
-		DisplayName:  res.Account.DisplayName,
-		ScreenImgURL: res.Account.ScreenImgUrl,
+	return &model.UserProfile{
+		ID:           res.UserProfile.UserId,
+		Email:        res.UserProfile.Email,
+		DisplayName:  res.UserProfile.DisplayName,
+		ScreenImgURL: res.UserProfile.ScreenImgUrl,
 	}, nil
 }
 

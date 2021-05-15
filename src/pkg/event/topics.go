@@ -1,3 +1,3 @@
 package event
 
-const AccountRegistrationTopicName = "account-registration"
+const UserRegistrationTopicName = "account.user-registration"
