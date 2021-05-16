@@ -7,8 +7,8 @@ resource "google_container_cluster" "eitan" {
   project    = var.project
   name       = local.cluster_name
   location   = "asia-northeast1"
-  network    = google_compute_network.main.self_link
-  subnetwork = google_compute_subnetwork.main.self_link
+  network    = google_compute_network.eitan_vpc.self_link
+  subnetwork = google_compute_subnetwork.eitan_vpc_main.self_link
 
   release_channel {
     channel = "RAPID"
@@ -26,8 +26,8 @@ resource "google_container_cluster" "eitan" {
   initial_node_count       = 1
 
   ip_allocation_policy {
-    cluster_secondary_range_name  = google_compute_subnetwork.main.secondary_ip_range[0].range_name
-    services_secondary_range_name = google_compute_subnetwork.main.secondary_ip_range[1].range_name
+    cluster_secondary_range_name  = google_compute_subnetwork.eitan_vpc_main.secondary_ip_range[0].range_name
+    services_secondary_range_name = google_compute_subnetwork.eitan_vpc_main.secondary_ip_range[1].range_name
   }
 }
 

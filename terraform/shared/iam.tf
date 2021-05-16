@@ -25,12 +25,34 @@ resource "google_service_account" "account_service" {
   display_name = "account-service KSA Service Account"
 }
 
+resource "google_service_account" "eitan_service" {
+  project      = var.project
+  account_id   = "eitan-service-${var.env}"
+  display_name = "eitan-service KSA Service Account"
+}
+
+resource "google_service_account" "notification_service" {
+  project      = var.project
+  account_id   = "notification-service-${var.env}"
+  display_name = "notification-service KSA Service Account"
+}
+
+locals {
+  app_service_account_emails = toset([
+    google_service_account.account_service.email,
+    google_service_account.eitan_service.email,
+    google_service_account.notification_service.email
+  ])
+}
+
 resource "google_project_iam_member" "account_service_workload_identity_user" {
-  member = "serviceAccount:${google_service_account.account_service.email}"
-  role   = "roles/iam.workloadIdentityUser"
+  for_each = local.app_service_account_emails
+  member   = "serviceAccount:${each.value}"
+  role     = "roles/iam.workloadIdentityUser"
 }
 
 resource "google_project_iam_member" "account_service_pull_gcr" {
-  member = "serviceAccount:${google_service_account.account_service.email}"
-  role   = "roles/storage.objectViewer"
+  for_each = local.app_service_account_emails
+  member   = "serviceAccount:${each.value}"
+  role     = "roles/storage.objectViewer"
 }

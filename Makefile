@@ -45,3 +45,8 @@ reset-db:
 	docker-compose rm -f db
 	docker volume rm eitan_db_data
 	docker-compose up -d db
+
+.PHONY: tf-symlink
+tf-symlink:
+	#cd ./terraform/dev && ln -sf ../shared/* .
+	cd ./terraform/prod && ln -sf ../shared/* .

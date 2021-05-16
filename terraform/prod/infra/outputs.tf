@@ -1,1 +1,0 @@
-../../shared/infra/outputs.tf

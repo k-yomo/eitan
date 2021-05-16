@@ -153,11 +153,11 @@ func (r *subscriptionResolver) RandomMatchRoomDecided(ctx context.Context) (<-ch
 		}
 		roomJSON, err := json.Marshal(room)
 		if err != nil {
-			return  err
+			return err
 		}
 		err = r.redisClient.Publish(ctx, rediskeys.NewWaitingRoomPlayerKey(matchedPlayer.ID).String(), roomJSON).Err()
 		if err != nil {
-			return  err
+			return err
 		}
 		roomChan <- room
 		roomDecided = true

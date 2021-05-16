@@ -1,12 +1,12 @@
-resource "google_compute_network" "main" {
+resource "google_compute_network" "eitan_vpc" {
   name                    = "eitan-vpc-${var.env}"
   routing_mode            = "REGIONAL"
   auto_create_subnetworks = false
 }
 
-resource "google_compute_subnetwork" "main" {
-  name          = "${google_compute_network.main.name}-main-subnet"
-  network       = google_compute_network.main.self_link
+resource "google_compute_subnetwork" "eitan_vpc_main" {
+  name          = "${google_compute_network.eitan_vpc.name}-main-subnet"
+  network       = google_compute_network.eitan_vpc.self_link
   region        = "asia-northeast1"
   ip_cidr_range = var.main_subnet_cidr_range
 
