@@ -169,7 +169,7 @@ func (r *subscriptionResolver) RandomMatchRoomDecided(ctx context.Context) (<-ch
 	}
 
 	if roomDecided {
-		return nil, err
+		return roomChan, err
 	}
 
 	// if not match, let user wait matching
