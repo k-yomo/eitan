@@ -18,8 +18,10 @@ resource "google_pubsub_subscription" "notification_account_user_registration" {
   # 10m
   message_retention_duration = "604800s"
   # 7days
+  expiration_policy {
+    ttl = "" // empty means no expiration
+  }
 }
-
 resource "google_pubsub_subscription_iam_binding" "notification_account_user_registration" {
   subscription = google_pubsub_subscription.notification_account_user_registration.name
   role         = "roles/pubsub.viewer"
@@ -27,6 +29,7 @@ resource "google_pubsub_subscription_iam_binding" "notification_account_user_reg
     "serviceAccount:${google_service_account.notification_service.email}",
   ]
 }
+
 resource "google_pubsub_subscription" "eitan_account_user_registration" {
   name  = "eitan.account.user-registration"
   topic = google_pubsub_topic.account_user_registration.name
@@ -35,6 +38,9 @@ resource "google_pubsub_subscription" "eitan_account_user_registration" {
   # 10m
   message_retention_duration = "604800s"
   # 7days
+  expiration_policy {
+    ttl = "" // empty means no expiration
+  }
 }
 resource "google_pubsub_subscription_iam_binding" "eitan_account_user_registration" {
   subscription = google_pubsub_subscription.eitan_account_user_registration.name
