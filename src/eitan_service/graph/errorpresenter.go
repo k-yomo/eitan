@@ -7,6 +7,7 @@ import (
 	"github.com/k-yomo/eitan/src/eitan_service/internal/customerror"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"go.uber.org/zap"
 )
 
 // TODO: Don't return raw error message, handle gracefully
@@ -15,7 +16,8 @@ func NewErrorPresenter() graphql.ErrorPresenterFunc {
 		gqlErr := graphql.DefaultErrorPresenter(ctx, err)
 		code := mapFromCustomErrorType(customerror.Type(gqlErr.Unwrap()))
 		if code == model.ErrorCodeInternal {
-			logging.Logger(ctx).Error(err.Error())
+			logging.Logger(ctx).Error(err.Error(), zap.Error(err))
+			gqlErr.Message = "internal server error"
 		}
 		gqlErr.Extensions = map[string]interface{}{"code": code}
 		return gqlErr

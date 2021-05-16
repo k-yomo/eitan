@@ -58,10 +58,12 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 			return
 		}
 		// Create account if not exist
-		if err := a.createOauthUser(ctx, gothUser); err != nil {
+		user, err := a.createOauthUser(ctx, gothUser)
+		if err != nil {
 			handleServerError(ctx, err, w)
 			return
 		}
+		userID = user.ID
 	}
 
 	if err := a.sessionManager.Login(w, r, userID); err != nil {
@@ -72,7 +74,7 @@ func (a *AuthHandler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request
 	http.Redirect(w, r, fmt.Sprintf("%s/user_settings", a.webAppURL), http.StatusFound)
 }
 
-func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) error {
+func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) (*infra.User, error) {
 	logger := logging.Logger(ctx)
 
 	now := clock.Now()
@@ -118,7 +120,7 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) e
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m := eitan.UserRegistrationEvent{
@@ -139,7 +141,7 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) e
 		logger.Debug("published AccountRegistrationEvent", zap.Error(err))
 	}
 
-	return nil
+	return user, nil
 }
 
 func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {

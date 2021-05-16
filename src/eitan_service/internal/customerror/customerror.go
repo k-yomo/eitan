@@ -82,6 +82,10 @@ func NewErrInvalidArgument(err error) error {
 	return New(err, ErrInvalidArgument)
 }
 
+func NewErrGetUserIDFailedInAuthRequiredMethod() error {
+	return New(errors.New("failed to get user id"), ErrInvalidArgument)
+}
+
 func Type(err error) ErrType {
 	e, ok := err.(*customError)
 	if !ok {

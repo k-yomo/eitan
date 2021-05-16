@@ -1,16 +1,22 @@
 package session
 
-import "context"
+import (
+	"context"
+)
 
 const CookieSessionKey = "sid"
 
-// GetSessionID extract session id from context
+// SetSessionID sets session id to context
 func SetSessionID(ctx context.Context, sid string) context.Context {
 	return context.WithValue(ctx, CookieSessionKey, sid)
 }
 
 // GetSessionID extract session id from context
 func GetSessionID(ctx context.Context) (string, bool) {
-	userID, ok := ctx.Value(CookieSessionKey).(string)
-	return userID, ok
+	switch sid := ctx.Value(CookieSessionKey).(type) {
+	case string:
+		return sid, true
+	default:
+		return "", false
+	}
 }

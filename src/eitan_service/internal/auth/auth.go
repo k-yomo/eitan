@@ -48,7 +48,7 @@ func NewHasRole(accountServiceClient eitan.AccountServiceClient) func(ctx contex
 			} else if err != nil {
 				return nil, customerror.New(err, customerror.ErrInternal)
 			}
-			logging.Logger(ctx).Info("Authenticated", zap.String("userID", res.UserProfile.UserId))
+			logging.AddFields(ctx, zap.String("userID", res.UserProfile.UserId))
 			ctx = context.WithValue(ctx, authenticatedUserIDKey{}, res.UserProfile.UserId)
 		}
 		return next(ctx)

@@ -289,47 +289,6 @@ func UserProfileByEmail(ctx context.Context, db Queryer, email string) (*UserPro
 	return &up, nil
 }
 
-// UserProfilesByEmail retrieves a row from 'user_profiles' as a UserProfile.
-// Generated from index 'email_idx'.
-func UserProfilesByEmail(ctx context.Context, db Queryer, email string) ([]*UserProfile, error) {
-	var err error
-
-	// sql query
-	const sqlstr = `SELECT ` +
-		`user_id, email, display_name, screen_img_url, created_at, updated_at ` +
-		`FROM user_profiles ` +
-		`WHERE email = ?`
-
-	// log and trace
-	XOLog(ctx, sqlstr, email)
-	closeSpan := startSQLSpan(ctx, "UserProfilesByEmail", sqlstr, email)
-	defer closeSpan()
-	// run query
-	rows, err := db.QueryContext(ctx, sqlstr, email)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	// load results
-	var res []*UserProfile
-	for rows.Next() {
-		up := UserProfile{
-			_exists: true,
-		}
-
-		// scan
-		err = rows.Scan(&up.UserID, &up.Email, &up.DisplayName, &up.ScreenImgURL, &up.CreatedAt, &up.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, &up)
-	}
-
-	return res, nil
-}
-
 // UserProfileByUserID retrieves a row from 'user_profiles' as a UserProfile.
 // Generated from index 'user_profiles_user_id_pkey'.
 func UserProfileByUserID(ctx context.Context, db Queryer, userID string) (*UserProfile, error) {

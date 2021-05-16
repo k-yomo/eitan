@@ -4,8 +4,23 @@ type Query {
     node(id: ID!): Node
     nodes(ids: [ID!]!): [Node]!
 
-    currentUserProfile: UserProfile! @hasRole(role: USER)
+    currentUserProfile: CurrentUserProfile! @hasRole(role: USER)
+    currentPlayer: Player! @hasRole(role: USER)
 }
+
+type Mutation {
+    updatePlayerId(input: UpdatePlayerIdInput!): Player! @hasRole(role: USER)
+    cancelWaitingMatch: Boolean! @hasRole(role: USER)
+    updateCurrentPlayerQuizRoomStatus(roomId: ID!): Boolean @hasRole(role: USER)
+    createAnswer(roomId: ID!, quizId: ID!, answer: String!): Boolean @hasRole(role: USER)
+}
+
+type Subscription {
+    randomMatchRoomDecided: QuizRoom! @hasRole(role: USER)
+    quizPosted(roomId: ID!): Quiz! @hasRole(role: USER)
+    quizAnswered(roomId: ID!): QuizAnswer! @hasRole(role: USER)
+}
+
 
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
@@ -26,16 +41,56 @@ interface Node {
     id: ID!
 }
 
-type UserProfile implements Node {
+type CurrentUserProfile {
     id: ID!
     email: String!
     displayName: String!
     screenImgUrl: String
 }
 
-type UserProfilePublic implements Node {
+type UserProfile implements Node {
     id: ID!
     displayName: String!
     screenImgUrl: String
 }
 
+type Player implements Node {
+    id: ID!
+    userId: ID!
+    userProfile: UserProfile!
+}
+
+type QuizRoom implements Node {
+    id: ID!
+    players: [Player!]!
+}
+
+enum QuizType {
+    FourChoices
+}
+
+union Quiz = FourChoicesQuiz
+union QuizAnswer = FourChoicesQuizAnswer
+
+type FourChoicesQuiz  {
+    id: ID!
+    quizType: QuizType!
+    question: String!
+    choices: [QuizChoice!]!
+}
+
+type FourChoicesQuizAnswer {
+    quiz: Quiz!
+    answeredPlayerID: ID!
+    correctChoiceID: ID!
+}
+
+
+type QuizChoice implements Node {
+    id: ID!
+    choice: String!
+}
+
+input UpdatePlayerIdInput {
+    playerId: String!
+}

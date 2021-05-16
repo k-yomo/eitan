@@ -44,6 +44,10 @@ func Logger(ctx context.Context) *zap.Logger {
 	return logger
 }
 
+func AddFields(ctx context.Context, fields ...zap.Field) {
+	ctxzap.AddFields(ctx, fields...)
+}
+
 // Middleware is set logger with request id to context
 func NewMiddleware(gcpProjectID string, logger *zap.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -118,6 +122,6 @@ func (g GraphQLResponseInterceptor) Validate(schema graphql.ExecutableSchema) er
 
 func (g GraphQLResponseInterceptor) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 	oc := graphql.GetOperationContext(ctx)
-	Logger(ctx).Info(oc.OperationName, zap.Any("variables", oc.Variables))
-	return next(context.WithValue(ctx, queryCtxKey, oc.RawQuery))
+	Logger(ctx).Info(oc.OperationName, zap.String("query", oc.RawQuery), zap.Any("variables", oc.Variables))
+	return next(ctx)
 }

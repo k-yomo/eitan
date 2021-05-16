@@ -3,13 +3,25 @@ import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { routes } from '@src/constants/routes';
 import {
+  CurrentUserProfileQuery,
   ErrorCode,
   useCurrentUserProfileQuery,
-  UserProfileInfoFragment,
 } from '@src/generated/graphql';
+import gql from 'graphql-tag';
 
-export interface CurrentUserProfileProps {
-  currentUserProfile: UserProfileInfoFragment;
+const currentUserProfile = gql`
+  query currentUserProfile {
+    currentUserProfile {
+      id
+      email
+      displayName
+      screenImgUrl
+    }
+  }
+`;
+
+export interface WithAuthProps {
+  currentUserProfile: CurrentUserProfileQuery['currentUserProfile'];
 }
 
 function isBrowser() {
@@ -43,10 +55,46 @@ export function withAuth(WrappedComponent: NextPage<any>) {
 
     const propsWithCurrentUser = {
       ...props,
-      currentUserProfile: data?.currentUserProfile,
+      currentUserProfile: data!.currentUserProfile,
     };
     return <WrappedComponent {...propsWithCurrentUser} />;
   };
 
   return ComponentWithAuth;
+}
+
+export interface WithCurrentUserProps {
+  currentUserProfile?: CurrentUserProfileQuery['currentUserProfile'];
+}
+
+// Not require the user to be authenticated in order to render the component.
+// If the user isn't authenticated, pass currentUserProfile as nil to child component.
+export function withCurrentUser(WrappedComponent: NextPage<any>) {
+  const ComponentWithCurrentUser: NextPage = (props) => {
+    if (!isBrowser()) {
+      return <></>;
+    }
+    const { data, loading, error } = useCurrentUserProfileQuery();
+
+    if (loading) {
+      return <div>Loading...</div>;
+    }
+
+    if (error) {
+      for (const e of error.graphQLErrors) {
+        if (e.extensions!.code !== ErrorCode.Unauthenticated) {
+          // TODO: Show error page
+          return <div>Internal server error</div>;
+        }
+      }
+    }
+
+    const propsWithCurrentUser = {
+      ...props,
+      currentUserProfile: data?.currentUserProfile,
+    };
+    return <WrappedComponent {...propsWithCurrentUser} />;
+  };
+
+  return ComponentWithCurrentUser;
 }

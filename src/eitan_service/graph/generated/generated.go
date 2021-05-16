@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -36,7 +37,10 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Mutation() MutationResolver
+	Player() PlayerResolver
 	Query() QueryResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
@@ -44,30 +48,88 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Query struct {
-		CurrentUserProfile func(childComplexity int) int
-		Node               func(childComplexity int, id string) int
-		Nodes              func(childComplexity int, ids []string) int
-	}
-
-	UserProfile struct {
+	CurrentUserProfile struct {
 		DisplayName  func(childComplexity int) int
 		Email        func(childComplexity int) int
 		ID           func(childComplexity int) int
 		ScreenImgURL func(childComplexity int) int
 	}
 
-	UserProfilePublic struct {
+	FourChoicesQuiz struct {
+		Choices  func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Question func(childComplexity int) int
+		QuizType func(childComplexity int) int
+	}
+
+	FourChoicesQuizAnswer struct {
+		AnsweredPlayerID func(childComplexity int) int
+		CorrectChoiceID  func(childComplexity int) int
+		Quiz             func(childComplexity int) int
+	}
+
+	Mutation struct {
+		CancelWaitingMatch                func(childComplexity int) int
+		CreateAnswer                      func(childComplexity int, roomID string, quizID string, answer string) int
+		UpdateCurrentPlayerQuizRoomStatus func(childComplexity int, roomID string) int
+		UpdatePlayerID                    func(childComplexity int, input model.UpdatePlayerIDInput) int
+	}
+
+	Player struct {
+		ID          func(childComplexity int) int
+		UserID      func(childComplexity int) int
+		UserProfile func(childComplexity int) int
+	}
+
+	Query struct {
+		CurrentPlayer      func(childComplexity int) int
+		CurrentUserProfile func(childComplexity int) int
+		Node               func(childComplexity int, id string) int
+		Nodes              func(childComplexity int, ids []string) int
+	}
+
+	QuizChoice struct {
+		Choice func(childComplexity int) int
+		ID     func(childComplexity int) int
+	}
+
+	QuizRoom struct {
+		ID      func(childComplexity int) int
+		Players func(childComplexity int) int
+	}
+
+	Subscription struct {
+		QuizAnswered           func(childComplexity int, roomID string) int
+		QuizPosted             func(childComplexity int, roomID string) int
+		RandomMatchRoomDecided func(childComplexity int) int
+	}
+
+	UserProfile struct {
 		DisplayName  func(childComplexity int) int
 		ID           func(childComplexity int) int
 		ScreenImgURL func(childComplexity int) int
 	}
 }
 
+type MutationResolver interface {
+	UpdatePlayerID(ctx context.Context, input model.UpdatePlayerIDInput) (*model.Player, error)
+	CancelWaitingMatch(ctx context.Context) (bool, error)
+	UpdateCurrentPlayerQuizRoomStatus(ctx context.Context, roomID string) (*bool, error)
+	CreateAnswer(ctx context.Context, roomID string, quizID string, answer string) (*bool, error)
+}
+type PlayerResolver interface {
+	UserProfile(ctx context.Context, obj *model.Player) (*model.UserProfile, error)
+}
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (model.Node, error)
 	Nodes(ctx context.Context, ids []string) ([]model.Node, error)
-	CurrentUserProfile(ctx context.Context) (*model.UserProfile, error)
+	CurrentUserProfile(ctx context.Context) (*model.CurrentUserProfile, error)
+	CurrentPlayer(ctx context.Context) (*model.Player, error)
+}
+type SubscriptionResolver interface {
+	RandomMatchRoomDecided(ctx context.Context) (<-chan *model.QuizRoom, error)
+	QuizPosted(ctx context.Context, roomID string) (<-chan model.Quiz, error)
+	QuizAnswered(ctx context.Context, roomID string) (<-chan model.QuizAnswer, error)
 }
 
 type executableSchema struct {
@@ -84,6 +146,154 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "CurrentUserProfile.displayName":
+		if e.complexity.CurrentUserProfile.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.CurrentUserProfile.DisplayName(childComplexity), true
+
+	case "CurrentUserProfile.email":
+		if e.complexity.CurrentUserProfile.Email == nil {
+			break
+		}
+
+		return e.complexity.CurrentUserProfile.Email(childComplexity), true
+
+	case "CurrentUserProfile.id":
+		if e.complexity.CurrentUserProfile.ID == nil {
+			break
+		}
+
+		return e.complexity.CurrentUserProfile.ID(childComplexity), true
+
+	case "CurrentUserProfile.screenImgUrl":
+		if e.complexity.CurrentUserProfile.ScreenImgURL == nil {
+			break
+		}
+
+		return e.complexity.CurrentUserProfile.ScreenImgURL(childComplexity), true
+
+	case "FourChoicesQuiz.choices":
+		if e.complexity.FourChoicesQuiz.Choices == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuiz.Choices(childComplexity), true
+
+	case "FourChoicesQuiz.id":
+		if e.complexity.FourChoicesQuiz.ID == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuiz.ID(childComplexity), true
+
+	case "FourChoicesQuiz.question":
+		if e.complexity.FourChoicesQuiz.Question == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuiz.Question(childComplexity), true
+
+	case "FourChoicesQuiz.quizType":
+		if e.complexity.FourChoicesQuiz.QuizType == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuiz.QuizType(childComplexity), true
+
+	case "FourChoicesQuizAnswer.answeredPlayerID":
+		if e.complexity.FourChoicesQuizAnswer.AnsweredPlayerID == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuizAnswer.AnsweredPlayerID(childComplexity), true
+
+	case "FourChoicesQuizAnswer.correctChoiceID":
+		if e.complexity.FourChoicesQuizAnswer.CorrectChoiceID == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuizAnswer.CorrectChoiceID(childComplexity), true
+
+	case "FourChoicesQuizAnswer.quiz":
+		if e.complexity.FourChoicesQuizAnswer.Quiz == nil {
+			break
+		}
+
+		return e.complexity.FourChoicesQuizAnswer.Quiz(childComplexity), true
+
+	case "Mutation.cancelWaitingMatch":
+		if e.complexity.Mutation.CancelWaitingMatch == nil {
+			break
+		}
+
+		return e.complexity.Mutation.CancelWaitingMatch(childComplexity), true
+
+	case "Mutation.createAnswer":
+		if e.complexity.Mutation.CreateAnswer == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAnswer_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAnswer(childComplexity, args["roomId"].(string), args["quizId"].(string), args["answer"].(string)), true
+
+	case "Mutation.updateCurrentPlayerQuizRoomStatus":
+		if e.complexity.Mutation.UpdateCurrentPlayerQuizRoomStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCurrentPlayerQuizRoomStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCurrentPlayerQuizRoomStatus(childComplexity, args["roomId"].(string)), true
+
+	case "Mutation.updatePlayerId":
+		if e.complexity.Mutation.UpdatePlayerID == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePlayerId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdatePlayerID(childComplexity, args["input"].(model.UpdatePlayerIDInput)), true
+
+	case "Player.id":
+		if e.complexity.Player.ID == nil {
+			break
+		}
+
+		return e.complexity.Player.ID(childComplexity), true
+
+	case "Player.userId":
+		if e.complexity.Player.UserID == nil {
+			break
+		}
+
+		return e.complexity.Player.UserID(childComplexity), true
+
+	case "Player.userProfile":
+		if e.complexity.Player.UserProfile == nil {
+			break
+		}
+
+		return e.complexity.Player.UserProfile(childComplexity), true
+
+	case "Query.currentPlayer":
+		if e.complexity.Query.CurrentPlayer == nil {
+			break
+		}
+
+		return e.complexity.Query.CurrentPlayer(childComplexity), true
 
 	case "Query.currentUserProfile":
 		if e.complexity.Query.CurrentUserProfile == nil {
@@ -116,19 +326,71 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]string)), true
 
+	case "QuizChoice.choice":
+		if e.complexity.QuizChoice.Choice == nil {
+			break
+		}
+
+		return e.complexity.QuizChoice.Choice(childComplexity), true
+
+	case "QuizChoice.id":
+		if e.complexity.QuizChoice.ID == nil {
+			break
+		}
+
+		return e.complexity.QuizChoice.ID(childComplexity), true
+
+	case "QuizRoom.id":
+		if e.complexity.QuizRoom.ID == nil {
+			break
+		}
+
+		return e.complexity.QuizRoom.ID(childComplexity), true
+
+	case "QuizRoom.players":
+		if e.complexity.QuizRoom.Players == nil {
+			break
+		}
+
+		return e.complexity.QuizRoom.Players(childComplexity), true
+
+	case "Subscription.quizAnswered":
+		if e.complexity.Subscription.QuizAnswered == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_quizAnswered_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.QuizAnswered(childComplexity, args["roomId"].(string)), true
+
+	case "Subscription.quizPosted":
+		if e.complexity.Subscription.QuizPosted == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_quizPosted_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.QuizPosted(childComplexity, args["roomId"].(string)), true
+
+	case "Subscription.randomMatchRoomDecided":
+		if e.complexity.Subscription.RandomMatchRoomDecided == nil {
+			break
+		}
+
+		return e.complexity.Subscription.RandomMatchRoomDecided(childComplexity), true
+
 	case "UserProfile.displayName":
 		if e.complexity.UserProfile.DisplayName == nil {
 			break
 		}
 
 		return e.complexity.UserProfile.DisplayName(childComplexity), true
-
-	case "UserProfile.email":
-		if e.complexity.UserProfile.Email == nil {
-			break
-		}
-
-		return e.complexity.UserProfile.Email(childComplexity), true
 
 	case "UserProfile.id":
 		if e.complexity.UserProfile.ID == nil {
@@ -143,27 +405,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserProfile.ScreenImgURL(childComplexity), true
-
-	case "UserProfilePublic.displayName":
-		if e.complexity.UserProfilePublic.DisplayName == nil {
-			break
-		}
-
-		return e.complexity.UserProfilePublic.DisplayName(childComplexity), true
-
-	case "UserProfilePublic.id":
-		if e.complexity.UserProfilePublic.ID == nil {
-			break
-		}
-
-		return e.complexity.UserProfilePublic.ID(childComplexity), true
-
-	case "UserProfilePublic.screenImgUrl":
-		if e.complexity.UserProfilePublic.ScreenImgURL == nil {
-			break
-		}
-
-		return e.complexity.UserProfilePublic.ScreenImgURL(childComplexity), true
 
 	}
 	return 0, false
@@ -183,6 +424,37 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			first = false
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
 			data.MarshalGQL(&buf)
 
 			return &graphql.Response{
@@ -221,8 +493,23 @@ type Query {
     node(id: ID!): Node
     nodes(ids: [ID!]!): [Node]!
 
-    currentUserProfile: UserProfile! @hasRole(role: USER)
+    currentUserProfile: CurrentUserProfile! @hasRole(role: USER)
+    currentPlayer: Player! @hasRole(role: USER)
 }
+
+type Mutation {
+    updatePlayerId(input: UpdatePlayerIdInput!): Player! @hasRole(role: USER)
+    cancelWaitingMatch: Boolean! @hasRole(role: USER)
+    updateCurrentPlayerQuizRoomStatus(roomId: ID!): Boolean @hasRole(role: USER)
+    createAnswer(roomId: ID!, quizId: ID!, answer: String!): Boolean @hasRole(role: USER)
+}
+
+type Subscription {
+    randomMatchRoomDecided: QuizRoom! @hasRole(role: USER)
+    quizPosted(roomId: ID!): Quiz! @hasRole(role: USER)
+    quizAnswered(roomId: ID!): QuizAnswer! @hasRole(role: USER)
+}
+
 
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
@@ -243,20 +530,59 @@ interface Node {
     id: ID!
 }
 
-type UserProfile implements Node {
+type CurrentUserProfile {
     id: ID!
     email: String!
     displayName: String!
     screenImgUrl: String
 }
 
-type UserProfilePublic implements Node {
+type UserProfile implements Node {
     id: ID!
     displayName: String!
     screenImgUrl: String
 }
 
-`, BuiltIn: false},
+type Player implements Node {
+    id: ID!
+    userId: ID!
+    userProfile: UserProfile!
+}
+
+type QuizRoom implements Node {
+    id: ID!
+    players: [Player!]!
+}
+
+enum QuizType {
+    FourChoices
+}
+
+union Quiz = FourChoicesQuiz
+union QuizAnswer = FourChoicesQuizAnswer
+
+type FourChoicesQuiz  {
+    id: ID!
+    quizType: QuizType!
+    question: String!
+    choices: [QuizChoice!]!
+}
+
+type FourChoicesQuizAnswer {
+    quiz: Quiz!
+    answeredPlayerID: ID!
+    correctChoiceID: ID!
+}
+
+
+type QuizChoice implements Node {
+    id: ID!
+    choice: String!
+}
+
+input UpdatePlayerIdInput {
+    playerId: String!
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -276,6 +602,69 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createAnswer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roomId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["quizId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quizId"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["quizId"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["answer"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("answer"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["answer"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateCurrentPlayerQuizRoomStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roomId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updatePlayerId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdatePlayerIDInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdatePlayerIdInput2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUpdatePlayerIDInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -324,6 +713,36 @@ func (ec *executionContext) field_Query_nodes_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
+func (ec *executionContext) field_Subscription_quizAnswered_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roomId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_quizPosted_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roomId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -361,6 +780,744 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _CurrentUserProfile_id(ctx context.Context, field graphql.CollectedField, obj *model.CurrentUserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CurrentUserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CurrentUserProfile_email(ctx context.Context, field graphql.CollectedField, obj *model.CurrentUserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CurrentUserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CurrentUserProfile_displayName(ctx context.Context, field graphql.CollectedField, obj *model.CurrentUserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CurrentUserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CurrentUserProfile_screenImgUrl(ctx context.Context, field graphql.CollectedField, obj *model.CurrentUserProfile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CurrentUserProfile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScreenImgURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuiz_id(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuiz) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuiz",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuiz_quizType(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuiz) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuiz",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.QuizType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.QuizType)
+	fc.Result = res
+	return ec.marshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuiz_question(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuiz) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuiz",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Question, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuiz_choices(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuiz) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuiz",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Choices, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.QuizChoice)
+	fc.Result = res
+	return ec.marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoiceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuizAnswer_quiz(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuizAnswer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuizAnswer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Quiz, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Quiz)
+	fc.Result = res
+	return ec.marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuiz(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuizAnswer_answeredPlayerID(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuizAnswer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuizAnswer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AnsweredPlayerID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _FourChoicesQuizAnswer_correctChoiceID(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuizAnswer) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "FourChoicesQuizAnswer",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CorrectChoiceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updatePlayerId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updatePlayerId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdatePlayerID(rctx, args["input"].(model.UpdatePlayerIDInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Player); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.Player`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Player)
+	fc.Result = res
+	return ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_cancelWaitingMatch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CancelWaitingMatch(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateCurrentPlayerQuizRoomStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateCurrentPlayerQuizRoomStatus_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateCurrentPlayerQuizRoomStatus(rctx, args["roomId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createAnswer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createAnswer_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateAnswer(rctx, args["roomId"].(string), args["quizId"].(string), args["answer"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Player_id(ctx context.Context, field graphql.CollectedField, obj *model.Player) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Player",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Player_userId(ctx context.Context, field graphql.CollectedField, obj *model.Player) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Player",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Player_userProfile(ctx context.Context, field graphql.CollectedField, obj *model.Player) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Player",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Player().UserProfile(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserProfile)
+	fc.Result = res
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUserProfile(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
@@ -482,10 +1639,10 @@ func (ec *executionContext) _Query_currentUserProfile(ctx context.Context, field
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*model.UserProfile); ok {
+		if data, ok := tmp.(*model.CurrentUserProfile); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.UserProfile`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.CurrentUserProfile`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -497,9 +1654,68 @@ func (ec *executionContext) _Query_currentUserProfile(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.UserProfile)
+	res := resTmp.(*model.CurrentUserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNCurrentUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐCurrentUserProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_currentPlayer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().CurrentPlayer(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Player); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.Player`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Player)
+	fc.Result = res
+	return ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -573,6 +1789,367 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _QuizChoice_id(ctx context.Context, field graphql.CollectedField, obj *model.QuizChoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "QuizChoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _QuizChoice_choice(ctx context.Context, field graphql.CollectedField, obj *model.QuizChoice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "QuizChoice",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Choice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _QuizRoom_id(ctx context.Context, field graphql.CollectedField, obj *model.QuizRoom) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "QuizRoom",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _QuizRoom_players(ctx context.Context, field graphql.CollectedField, obj *model.QuizRoom) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "QuizRoom",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Players, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Player)
+	fc.Result = res
+	return ec.marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayerᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Subscription_randomMatchRoomDecided(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Subscription().RandomMatchRoomDecided(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(<-chan *model.QuizRoom); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan *github.com/k-yomo/eitan/src/eitan_service/graph/model.QuizRoom`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan *model.QuizRoom)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizRoom(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
+func (ec *executionContext) _Subscription_quizPosted(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_quizPosted_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Subscription().QuizPosted(rctx, args["roomId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(<-chan model.Quiz); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan github.com/k-yomo/eitan/src/eitan_service/graph/model.Quiz`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan model.Quiz)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuiz(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
+func (ec *executionContext) _Subscription_quizAnswered(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_quizAnswered_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Subscription().QuizAnswered(rctx, args["roomId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(<-chan model.QuizAnswer); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan github.com/k-yomo/eitan/src/eitan_service/graph/model.QuizAnswer`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan model.QuizAnswer)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizAnswer(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
 func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *model.UserProfile) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -606,41 +2183,6 @@ func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.C
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserProfile_email(ctx context.Context, field graphql.CollectedField, obj *model.UserProfile) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserProfile",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Email, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProfile_displayName(ctx context.Context, field graphql.CollectedField, obj *model.UserProfile) (ret graphql.Marshaler) {
@@ -687,108 +2229,6 @@ func (ec *executionContext) _UserProfile_screenImgUrl(ctx context.Context, field
 	}()
 	fc := &graphql.FieldContext{
 		Object:     "UserProfile",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ScreenImgURL, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserProfilePublic_id(ctx context.Context, field graphql.CollectedField, obj *model.UserProfilePublic) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserProfilePublic",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserProfilePublic_displayName(ctx context.Context, field graphql.CollectedField, obj *model.UserProfilePublic) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserProfilePublic",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DisplayName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserProfilePublic_screenImgUrl(ctx context.Context, field graphql.CollectedField, obj *model.UserProfilePublic) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserProfilePublic",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1899,6 +3339,26 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputUpdatePlayerIdInput(ctx context.Context, obj interface{}) (model.UpdatePlayerIDInput, error) {
+	var it model.UpdatePlayerIDInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "playerId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("playerId"))
+			it.PlayerID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -1914,13 +3374,59 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._UserProfile(ctx, sel, obj)
-	case model.UserProfilePublic:
-		return ec._UserProfilePublic(ctx, sel, &obj)
-	case *model.UserProfilePublic:
+	case model.Player:
+		return ec._Player(ctx, sel, &obj)
+	case *model.Player:
 		if obj == nil {
 			return graphql.Null
 		}
-		return ec._UserProfilePublic(ctx, sel, obj)
+		return ec._Player(ctx, sel, obj)
+	case model.QuizRoom:
+		return ec._QuizRoom(ctx, sel, &obj)
+	case *model.QuizRoom:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._QuizRoom(ctx, sel, obj)
+	case model.QuizChoice:
+		return ec._QuizChoice(ctx, sel, &obj)
+	case *model.QuizChoice:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._QuizChoice(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _Quiz(ctx context.Context, sel ast.SelectionSet, obj model.Quiz) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case model.FourChoicesQuiz:
+		return ec._FourChoicesQuiz(ctx, sel, &obj)
+	case *model.FourChoicesQuiz:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._FourChoicesQuiz(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _QuizAnswer(ctx context.Context, sel ast.SelectionSet, obj model.QuizAnswer) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case model.FourChoicesQuizAnswer:
+		return ec._FourChoicesQuizAnswer(ctx, sel, &obj)
+	case *model.FourChoicesQuizAnswer:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._FourChoicesQuizAnswer(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -1929,6 +3435,210 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var currentUserProfileImplementors = []string{"CurrentUserProfile"}
+
+func (ec *executionContext) _CurrentUserProfile(ctx context.Context, sel ast.SelectionSet, obj *model.CurrentUserProfile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, currentUserProfileImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CurrentUserProfile")
+		case "id":
+			out.Values[i] = ec._CurrentUserProfile_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+			out.Values[i] = ec._CurrentUserProfile_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "displayName":
+			out.Values[i] = ec._CurrentUserProfile_displayName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "screenImgUrl":
+			out.Values[i] = ec._CurrentUserProfile_screenImgUrl(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var fourChoicesQuizImplementors = []string{"FourChoicesQuiz", "Quiz"}
+
+func (ec *executionContext) _FourChoicesQuiz(ctx context.Context, sel ast.SelectionSet, obj *model.FourChoicesQuiz) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fourChoicesQuizImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FourChoicesQuiz")
+		case "id":
+			out.Values[i] = ec._FourChoicesQuiz_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "quizType":
+			out.Values[i] = ec._FourChoicesQuiz_quizType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "question":
+			out.Values[i] = ec._FourChoicesQuiz_question(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "choices":
+			out.Values[i] = ec._FourChoicesQuiz_choices(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var fourChoicesQuizAnswerImplementors = []string{"FourChoicesQuizAnswer", "QuizAnswer"}
+
+func (ec *executionContext) _FourChoicesQuizAnswer(ctx context.Context, sel ast.SelectionSet, obj *model.FourChoicesQuizAnswer) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fourChoicesQuizAnswerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FourChoicesQuizAnswer")
+		case "quiz":
+			out.Values[i] = ec._FourChoicesQuizAnswer_quiz(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "answeredPlayerID":
+			out.Values[i] = ec._FourChoicesQuizAnswer_answeredPlayerID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "correctChoiceID":
+			out.Values[i] = ec._FourChoicesQuizAnswer_correctChoiceID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var mutationImplementors = []string{"Mutation"}
+
+func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Mutation",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Mutation")
+		case "updatePlayerId":
+			out.Values[i] = ec._Mutation_updatePlayerId(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "cancelWaitingMatch":
+			out.Values[i] = ec._Mutation_cancelWaitingMatch(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateCurrentPlayerQuizRoomStatus":
+			out.Values[i] = ec._Mutation_updateCurrentPlayerQuizRoomStatus(ctx, field)
+		case "createAnswer":
+			out.Values[i] = ec._Mutation_createAnswer(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var playerImplementors = []string{"Player", "Node"}
+
+func (ec *executionContext) _Player(ctx context.Context, sel ast.SelectionSet, obj *model.Player) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, playerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Player")
+		case "id":
+			out.Values[i] = ec._Player_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "userId":
+			out.Values[i] = ec._Player_userId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "userProfile":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Player_userProfile(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var queryImplementors = []string{"Query"}
 
@@ -1984,6 +3694,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "currentPlayer":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_currentPlayer(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -1997,6 +3721,94 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		return graphql.Null
 	}
 	return out
+}
+
+var quizChoiceImplementors = []string{"QuizChoice", "Node"}
+
+func (ec *executionContext) _QuizChoice(ctx context.Context, sel ast.SelectionSet, obj *model.QuizChoice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, quizChoiceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("QuizChoice")
+		case "id":
+			out.Values[i] = ec._QuizChoice_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "choice":
+			out.Values[i] = ec._QuizChoice_choice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var quizRoomImplementors = []string{"QuizRoom", "Node"}
+
+func (ec *executionContext) _QuizRoom(ctx context.Context, sel ast.SelectionSet, obj *model.QuizRoom) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, quizRoomImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("QuizRoom")
+		case "id":
+			out.Values[i] = ec._QuizRoom_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "players":
+			out.Values[i] = ec._QuizRoom_players(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "randomMatchRoomDecided":
+		return ec._Subscription_randomMatchRoomDecided(ctx, fields[0])
+	case "quizPosted":
+		return ec._Subscription_quizPosted(ctx, fields[0])
+	case "quizAnswered":
+		return ec._Subscription_quizAnswered(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
 }
 
 var userProfileImplementors = []string{"UserProfile", "Node"}
@@ -2015,11 +3827,6 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "email":
-			out.Values[i] = ec._UserProfile_email(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "displayName":
 			out.Values[i] = ec._UserProfile_displayName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2027,40 +3834,6 @@ func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionS
 			}
 		case "screenImgUrl":
 			out.Values[i] = ec._UserProfile_screenImgUrl(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var userProfilePublicImplementors = []string{"UserProfilePublic", "Node"}
-
-func (ec *executionContext) _UserProfilePublic(ctx context.Context, sel ast.SelectionSet, obj *model.UserProfilePublic) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userProfilePublicImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("UserProfilePublic")
-		case "id":
-			out.Values[i] = ec._UserProfilePublic_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "displayName":
-			out.Values[i] = ec._UserProfilePublic_displayName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "screenImgUrl":
-			out.Values[i] = ec._UserProfilePublic_screenImgUrl(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2332,6 +4105,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCurrentUserProfile2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐCurrentUserProfile(ctx context.Context, sel ast.SelectionSet, v model.CurrentUserProfile) graphql.Marshaler {
+	return ec._CurrentUserProfile(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCurrentUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐCurrentUserProfile(ctx context.Context, sel ast.SelectionSet, v *model.CurrentUserProfile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CurrentUserProfile(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2414,6 +4201,148 @@ func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsr
 	return ret
 }
 
+func (ec *executionContext) marshalNPlayer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx context.Context, sel ast.SelectionSet, v model.Player) graphql.Marshaler {
+	return ec._Player(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Player) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx context.Context, sel ast.SelectionSet, v *model.Player) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Player(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuiz(ctx context.Context, sel ast.SelectionSet, v model.Quiz) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Quiz(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizAnswer(ctx context.Context, sel ast.SelectionSet, v model.QuizAnswer) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._QuizAnswer(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.QuizChoice) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoice(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoice(ctx context.Context, sel ast.SelectionSet, v *model.QuizChoice) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._QuizChoice(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNQuizRoom2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizRoom(ctx context.Context, sel ast.SelectionSet, v model.QuizRoom) graphql.Marshaler {
+	return ec._QuizRoom(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizRoom(ctx context.Context, sel ast.SelectionSet, v *model.QuizRoom) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._QuizRoom(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizType(ctx context.Context, v interface{}) (model.QuizType, error) {
+	var res model.QuizType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizType(ctx context.Context, sel ast.SelectionSet, v model.QuizType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
 	var res model.Role
 	err := res.UnmarshalGQL(v)
@@ -2437,6 +4366,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdatePlayerIdInput2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUpdatePlayerIDInput(ctx context.Context, v interface{}) (model.UpdatePlayerIDInput, error) {
+	res, err := ec.unmarshalInputUpdatePlayerIdInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNUserProfile2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v model.UserProfile) graphql.Marshaler {

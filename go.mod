@@ -21,6 +21,7 @@ require (
 	github.com/k-yomo/pm v0.1.2
 	github.com/k-yomo/rediskey v0.1.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lithammer/shortuuid/v3 v3.0.6 // indirect
 	github.com/markbates/goth v1.67.1
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/oklog/ulid/v2 v2.0.2

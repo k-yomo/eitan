@@ -5,23 +5,19 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/k-yomo/eitan/src/notification_service/config"
 	"github.com/k-yomo/eitan/src/notification_service/internal/email"
-	"github.com/k-yomo/eitan/src/pkg/event"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/pm"
 	"github.com/k-yomo/pm/middleware/logging/pm_zap"
 	"github.com/k-yomo/pm/middleware/pm_autoack"
 	"github.com/k-yomo/pm/middleware/pm_recovery"
-	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func main() {
@@ -64,49 +60,17 @@ func main() {
 		emailClient = email.NewNoopEmailClient()
 	}
 
-	h := NewNotificationHandler(dsClient, emailClient)
-
-	if !appConfig.IsDeployedEnv() {
-		if err := createTopicsAndSubs(pubsubClient); err != nil {
-			logger.Fatal("create topics and subscription failed", zap.Error(err))
-		}
-	}
+	h := NewPubSubHandler(dsClient, emailClient)
 	err = pubsubSubscriber.HandleSubscriptionFunc("notification.account.user-registration", h.HandleUserRegistration)
 	if err != nil {
 		logger.Fatal("set subscription handler failed", zap.Error(err))
 	}
 
-	pubsubSubscriber.Run(ctxzap.ToContext(context.Background(), logger))
+	pubsubSubscriber.Run(context.Background())
 	defer pubsubSubscriber.Close()
 	log.Printf("pubsub subscriber started running")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
-}
-
-func createTopicsAndSubs(pubsubClient *pubsub.Client) error {
-	ctx := context.Background()
-	t := pubsubClient.Topic(event.UserRegistrationTopicName)
-	topicExist, err := t.Exists(ctx)
-	if err != nil {
-		return errors.Wrap(err, "check if topic exists failed")
-	}
-	if !topicExist {
-		t, err = pubsubClient.CreateTopic(ctx, event.UserRegistrationTopicName)
-		if err != nil {
-			return errors.Wrap(err, "create topic failed")
-		}
-	}
-	subExist, err := pubsubClient.Subscription("notification.account.user-registration").Exists(ctx)
-	if err != nil {
-		return errors.Wrap(err, "check if subscription exist failed")
-	}
-	if !subExist {
-		c := pubsub.SubscriptionConfig{Topic: t, AckDeadline: 10 * time.Minute}
-		if _, err := pubsubClient.CreateSubscription(ctx, "notification.account.user-registration", c); err != nil {
-			return errors.Wrap(err, "create subscription failed")
-		}
-	}
-	return nil
 }

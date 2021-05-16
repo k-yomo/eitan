@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -22,6 +23,10 @@ import (
 	"github.com/k-yomo/eitan/src/pkg/gqlopentelemetry"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
+	"github.com/k-yomo/pm"
+	"github.com/k-yomo/pm/middleware/logging/pm_zap"
+	"github.com/k-yomo/pm/middleware/pm_autoack"
+	"github.com/k-yomo/pm/middleware/pm_recovery"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -71,6 +76,28 @@ func main() {
 		logger.Fatal("initialize redis client failed", zap.Error(err))
 	}
 
+	pubsubClient, err := pubsub.NewClient(context.Background(), appConfig.GCPProjectID)
+	if err != nil {
+		logger.Fatal("initialize pubsub client failed", zap.Error(err))
+	}
+	defer pubsubClient.Close()
+
+	pubsubSubscriber := pm.NewSubscriber(
+		pubsubClient,
+		pm.WithSubscriptionInterceptor(
+			pm_recovery.SubscriptionInterceptor(),
+			pm_zap.SubscriptionInterceptor(logger),
+			pm_autoack.SubscriptionInterceptor(),
+		),
+	)
+	defer pubsubSubscriber.Close()
+
+	pubsubHandler := NewPubSubHandler(db)
+	err = pubsubSubscriber.HandleSubscriptionFunc("eitan.account.user-registration", pubsubHandler.HandleUserRegistration)
+	if err != nil {
+		logger.Fatal("set pubsub subscription handler func failed", zap.Error(err))
+	}
+
 	accountServiceClient, closeAccountServiceClient := newAccountServiceClient(context.Background(), apiConfig.AccountServiceGRPCURL, appConfig.IsDeployedEnv())
 	defer closeAccountServiceClient()
 
@@ -86,6 +113,10 @@ func main() {
 	if appConfig.Env == config.Local {
 		r.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	}
+
+	pubsubSubscriber.Run(context.Background())
+	defer pubsubSubscriber.Close()
+	log.Printf("pubsub subscriber started running")
 
 	log.Printf("server listening on port: %d", appConfig.Port)
 	logger.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Port), r).Error())

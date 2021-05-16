@@ -42,7 +42,7 @@ func (a *AccountServiceServer) Authenticate(ctx context.Context, req *eitan.Auth
 		return nil, err
 	}
 
-	return &eitan.AuthenticateResponse{UserProfile: mapToGRPCUserProfile(userProfile)}, nil
+	return &eitan.AuthenticateResponse{UserProfile: mapToGRPCCurrentUserProfile(userProfile)}, nil
 }
 
 func (a *AccountServiceServer) GetCurrentUserProfile(ctx context.Context, _ *eitan.Empty) (*eitan.GetCurrentUserProfileResponse, error) {
@@ -58,13 +58,33 @@ func (a *AccountServiceServer) GetCurrentUserProfile(ctx context.Context, _ *eit
 		return nil, err
 	}
 
-	return &eitan.GetCurrentUserProfileResponse{UserProfile: mapToGRPCUserProfile(userProfile)}, nil
+	return &eitan.GetCurrentUserProfileResponse{UserProfile: mapToGRPCCurrentUserProfile(userProfile)}, nil
+}
+
+func (a *AccountServiceServer) GetUserProfile(ctx context.Context, req *eitan.GetUserProfileRequest) (*eitan.GetUserProfileResponse, error) {
+	userProfile, err := infra.UserProfileByUserID(ctx, a.db, req.UserId)
+	if err == sql.ErrNoRows {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("userProfile with id: '%s' not found", req.UserId))
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &eitan.GetUserProfileResponse{UserProfile: mapToGRPCUserProfile(userProfile)}, nil
+}
+
+func mapToGRPCCurrentUserProfile(up *infra.UserProfile) *eitan.CurrentUserProfile {
+	return &eitan.CurrentUserProfile{
+		UserId:       up.UserID,
+		Email:        up.Email,
+		DisplayName:  up.DisplayName,
+		ScreenImgUrl: sqlutil.NullStrToPtr(up.ScreenImgURL),
+	}
 }
 
 func mapToGRPCUserProfile(up *infra.UserProfile) *eitan.UserProfile {
 	return &eitan.UserProfile{
 		UserId:       up.UserID,
-		Email:        up.Email,
 		DisplayName:  up.DisplayName,
 		ScreenImgUrl: sqlutil.NullStrToPtr(up.ScreenImgURL),
 	}

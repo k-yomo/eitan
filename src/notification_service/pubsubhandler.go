@@ -11,19 +11,19 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-type NotificationHandler struct {
+type PubSubHandler struct {
 	dsClient    *datastore.Client
 	emailClient email.Client
 }
 
-func NewNotificationHandler(dsClient *datastore.Client, emailClient email.Client) *NotificationHandler {
-	return &NotificationHandler{
+func NewPubSubHandler(dsClient *datastore.Client, emailClient email.Client) *PubSubHandler {
+	return &PubSubHandler{
 		dsClient:    dsClient,
 		emailClient: emailClient,
 	}
 }
 
-func (n *NotificationHandler) HandleUserRegistration(ctx context.Context, m *pubsub.Message) error {
+func (p *PubSubHandler) HandleUserRegistration(ctx context.Context, m *pubsub.Message) error {
 	userRegistrationEvent := eitan.UserRegistrationEvent{}
 	if err := proto.Unmarshal(m.Data, &userRegistrationEvent); err != nil {
 		return errors.Wrap(err, "proto.Unmarshal")
@@ -46,7 +46,7 @@ Eitan Team
 	)
 
 	key := datastore.NameKey("UserRegistrationEvent", userRegistrationEvent.UserId, nil)
-	_, err := n.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+	_, err := p.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		if err := tx.Get(key, &eitan.UserRegistrationEvent{}); err == nil {
 			// entity exists means email already sent
 			return nil
@@ -59,7 +59,7 @@ Eitan Team
 		if _, err := tx.Put(key, &userRegistrationEvent); err != nil {
 			return err
 		}
-		if err := n.emailClient.Send(ctx, sgmail); err != nil {
+		if err := p.emailClient.Send(ctx, sgmail); err != nil {
 			return err
 		}
 		return nil

@@ -5,4 +5,5 @@ export const routes = {
   signUp: () => '/sign_up',
   passwordReset: () => '/password_reset',
   userSettings: () => 'user_settings',
+  waitingRoom: () => 'waiting_room'
 };

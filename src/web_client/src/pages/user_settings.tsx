@@ -1,10 +1,10 @@
 import React from 'react';
-import { CurrentUserProfileProps, withAuth } from '@src/lib/auth';
+import { WithAuthProps, withAuth } from '@src/lib/auth';
 import { NextPage } from 'next';
 
-const ProfilePage: NextPage<CurrentUserProfileProps> = ({
+const ProfilePage: NextPage<WithAuthProps> = ({
   currentUserProfile,
-}: CurrentUserProfileProps) => {
+}: WithAuthProps) => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <div className="grid place-items-center mx-2 md:my-20 my-10">

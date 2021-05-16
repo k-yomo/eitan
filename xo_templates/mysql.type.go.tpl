@@ -246,7 +246,7 @@ func ({{ $short }} *{{ .Name }}) Delete(ctx context.Context, db Execer) error {
 		const sqlstr = `DELETE FROM {{ $table }} WHERE {{ colnamesquery .PrimaryKeyFields " AND " }}`
 
 		// log and trace
-		XOLog(sqlstr, {{ fieldnames .PrimaryKeyFields $short }})
+		XOLog(ctx, sqlstr, {{ fieldnames .PrimaryKeyFields $short }})
         closeSpan := startSQLSpan(ctx, "{ .Name }}_Delete", sqlstr, {{ fieldnames .PrimaryKeyFields $short }})
         defer closeSpan()
 

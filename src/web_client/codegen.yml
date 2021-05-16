@@ -2,8 +2,7 @@
 overwrite: true
 schema: ../../defs/graphql/schema.graphql
 documents:
-  - ../../defs/graphql/mutations/*.graphql
-  - ../../defs/graphql/queries/*.graphql
+  - ./**/*.tsx
 generates:
   src/generated/graphql.tsx:
     plugins:

@@ -12,22 +12,71 @@ type Node interface {
 	IsNode()
 }
 
-type UserProfile struct {
+type Quiz interface {
+	IsQuiz()
+}
+
+type QuizAnswer interface {
+	IsQuizAnswer()
+}
+
+type CurrentUserProfile struct {
 	ID           string  `json:"id"`
 	Email        string  `json:"email"`
 	DisplayName  string  `json:"displayName"`
 	ScreenImgURL *string `json:"screenImgUrl"`
 }
 
-func (UserProfile) IsNode() {}
+type FourChoicesQuiz struct {
+	ID       string        `json:"id"`
+	QuizType QuizType      `json:"quizType"`
+	Question string        `json:"question"`
+	Choices  []*QuizChoice `json:"choices"`
+}
 
-type UserProfilePublic struct {
+func (FourChoicesQuiz) IsQuiz() {}
+
+type FourChoicesQuizAnswer struct {
+	Quiz             Quiz   `json:"quiz"`
+	AnsweredPlayerID string `json:"answeredPlayerID"`
+	CorrectChoiceID  string `json:"correctChoiceID"`
+}
+
+func (FourChoicesQuizAnswer) IsQuizAnswer() {}
+
+type Player struct {
+	ID          string       `json:"id"`
+	UserID      string       `json:"userId"`
+	UserProfile *UserProfile `json:"userProfile"`
+}
+
+func (Player) IsNode() {}
+
+type QuizChoice struct {
+	ID     string `json:"id"`
+	Choice string `json:"choice"`
+}
+
+func (QuizChoice) IsNode() {}
+
+type QuizRoom struct {
+	ID      string    `json:"id"`
+	Players []*Player `json:"players"`
+}
+
+func (QuizRoom) IsNode() {}
+
+type UpdatePlayerIDInput struct {
+	PlayerID string `json:"playerId"`
+}
+
+type UserProfile struct {
 	ID           string  `json:"id"`
 	DisplayName  string  `json:"displayName"`
 	ScreenImgURL *string `json:"screenImgUrl"`
 }
 
-func (UserProfilePublic) IsNode() {}
+func (UserProfile) IsNode() {}
 
 type ErrorCode string
 
@@ -75,6 +124,45 @@ func (e *ErrorCode) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ErrorCode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type QuizType string
+
+const (
+	QuizTypeFourChoices QuizType = "FourChoices"
+)
+
+var AllQuizType = []QuizType{
+	QuizTypeFourChoices,
+}
+
+func (e QuizType) IsValid() bool {
+	switch e {
+	case QuizTypeFourChoices:
+		return true
+	}
+	return false
+}
+
+func (e QuizType) String() string {
+	return string(e)
+}
+
+func (e *QuizType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = QuizType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid QuizType", str)
+	}
+	return nil
+}
+
+func (e QuizType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

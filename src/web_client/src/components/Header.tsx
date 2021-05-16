@@ -1,10 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { Menu, Transition } from '@headlessui/react';
-import { useCurrentUserProfileQuery } from '@src/generated/graphql';
 import { routes } from '@src/constants/routes';
-import { CurrentUserProfileProps } from '@src/lib/auth';
+import {
+  WithAuthProps,
+  withCurrentUser,
+  WithCurrentUserProps,
+} from '@src/lib/auth';
 import { LOGOUT_URL } from '@src/constants/api';
+import { NextPage } from 'next';
 
 export default function Header() {
   return (
@@ -32,20 +36,15 @@ export default function Header() {
   );
 }
 
-const RightNav = () => {
-  const { data, loading, error } = useCurrentUserProfileQuery();
-  if (loading) {
-    return <></>;
-  }
-
-  if (error) {
-    console.log(error);
-  }
-
+const rightNavInner: NextPage<WithCurrentUserProps> = ({
+  currentUserProfile,
+}: WithCurrentUserProps) => {
   return (
     <>
-      {data && <UserMenu currentUserProfile={data.currentUserProfile} />}
-      {(!data || !data.currentUserProfile) && (
+      {currentUserProfile && (
+        <UserMenu currentUserProfile={currentUserProfile} />
+      )}
+      {!currentUserProfile && (
         <>
           <div className="md:flex items-center justify-end md:flex-1 lg:w-0">
             <Link href={routes.login()}>
@@ -65,7 +64,9 @@ const RightNav = () => {
   );
 };
 
-const UserMenu = ({ currentUserProfile }: CurrentUserProfileProps) => {
+const RightNav = withCurrentUser(rightNavInner);
+
+const UserMenu = ({ currentUserProfile }: WithAuthProps) => {
   return (
     <div className="md:flex items-center justify-end md:flex-1 ">
       <div className="relative inline-block text-left">
