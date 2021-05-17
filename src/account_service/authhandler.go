@@ -133,8 +133,8 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) (
 	if err != nil {
 		logger.Error("marshal AccountRegistrationEvent failed", zap.Error(err))
 	} else {
-		// TODO: retry publishing
 		t := a.pubsubClient.Topic(event.UserRegistrationTopicName)
+		// TODO: Fix to publish at-least-once
 		if _, err := t.Publish(ctx, &pubsub.Message{Data: mBytes}).Get(ctx); err != nil {
 			logger.Error("publish AccountRegistrationEvent failed", zap.Error(err), zap.String("AccountRegistrationEvent", m.String()))
 		}
