@@ -69,7 +69,7 @@ const ProfileBox = ({ currentUserProfile }: WithAuthProps) => {
         </div>
         <Link href={routes.waitingRoom()}>
           <a>
-            <button className="flex flex-row items-center justify-center w-full space-x-2 my-6 p-3 rounded-sm text-md text-white bg-blue-600 hover:bg-blue-700">
+            <button className="flex flex-row items-center justify-center w-full space-x-2 my-6 p-3 rounded-md font-bold text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 transition duration-300">
               <div>Random Match</div>
             </button>
           </a>

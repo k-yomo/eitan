@@ -53,7 +53,7 @@ const rightNavInner: NextPage<WithCurrentUserProps> = ({
               </a>
             </Link>
             <Link href={routes.signUp()}>
-              <a className="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-800 hover:bg-white hover:border-gray-800 hover:text-gray-900 transition duration-300">
+              <a className="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 transition duration-300">
                 Sign Up
               </a>
             </Link>
