@@ -23,19 +23,19 @@ func NewPubSubHandler(dsClient *datastore.Client, emailClient email.Client) *Pub
 	}
 }
 
-func (p *PubSubHandler) HandleUserRegistration(ctx context.Context, m *pubsub.Message) error {
-	userRegistrationEvent := eitan.UserRegistrationEvent{}
-	if err := proto.Unmarshal(m.Data, &userRegistrationEvent); err != nil {
+func (p *PubSubHandler) HandleUserRegisteredEvent(ctx context.Context, m *pubsub.Message) error {
+	userRegisteredEvent := eitan.UserRegisteredEvent{}
+	if err := proto.Unmarshal(m.Data, &userRegisteredEvent); err != nil {
 		return errors.Wrap(err, "proto.Unmarshal")
 	}
 
 	sgmail := mail.NewSingleEmail(
-		&mail.Email{Name: userRegistrationEvent.DisplayName, Address: userRegistrationEvent.Email},
+		&mail.Email{Name: userRegisteredEvent.DisplayName, Address: userRegisteredEvent.Email},
 		"Welcome to Eitan!",
-		&mail.Email{Name: userRegistrationEvent.DisplayName, Address: userRegistrationEvent.Email},
+		&mail.Email{Name: userRegisteredEvent.DisplayName, Address: userRegisteredEvent.Email},
 		// TODO: fix body
 		`
-Dear ` + userRegistrationEvent.DisplayName + `,
+Dear ` + userRegisteredEvent.DisplayName + `,
 
 Thank you for signing up for Eitan.
 
@@ -45,9 +45,9 @@ Eitan Team
 		"",
 	)
 
-	key := datastore.NameKey("UserRegistrationEvent", userRegistrationEvent.UserId, nil)
+	key := datastore.NameKey("UserRegisteredEvent", userRegisteredEvent.UserId, nil)
 	_, err := p.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		if err := tx.Get(key, &eitan.UserRegistrationEvent{}); err == nil {
+		if err := tx.Get(key, &eitan.UserRegisteredEvent{}); err == nil {
 			// entity exists means email already sent
 			return nil
 		} else {
@@ -56,7 +56,7 @@ Eitan Team
 			}
 		}
 
-		if _, err := tx.Put(key, &userRegistrationEvent); err != nil {
+		if _, err := tx.Put(key, &userRegisteredEvent); err != nil {
 			return err
 		}
 		if err := p.emailClient.Send(ctx, sgmail); err != nil {
@@ -65,7 +65,7 @@ Eitan Team
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err, "process UserRegistrationEvent")
+		return errors.Wrap(err, "process UserRegisteredEvent")
 	}
 
 	return nil

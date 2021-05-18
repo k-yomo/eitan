@@ -61,7 +61,7 @@ func main() {
 	}
 
 	h := NewPubSubHandler(dsClient, emailClient)
-	err = pubsubSubscriber.HandleSubscriptionFunc("notification.account.user-registration", h.HandleUserRegistration)
+	err = pubsubSubscriber.HandleSubscriptionFunc("notification.account.user-registered", h.HandleUserRegisteredEvent)
 	if err != nil {
 		logger.Fatal("set subscription handler failed", zap.Error(err))
 	}

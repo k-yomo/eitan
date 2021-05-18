@@ -26,19 +26,19 @@ func NewPubSubHandler(db *sqlx.DB) *PubSubHandler {
 	}
 }
 
-func (p *PubSubHandler) HandleUserRegistration(ctx context.Context, m *pubsub.Message) error {
-	userRegistrationEvent := eitan.UserRegistrationEvent{}
-	if err := proto.Unmarshal(m.Data, &userRegistrationEvent); err != nil {
+func (p *PubSubHandler) HandleUserRegisteredEvent(ctx context.Context, m *pubsub.Message) error {
+	userRegisteredEvent := eitan.UserRegisteredEvent{}
+	if err := proto.Unmarshal(m.Data, &userRegisteredEvent); err != nil {
 		return errors.Wrap(err, "proto.Unmarshal")
 	}
 
 	err := p.txManager.RunInTx(ctx, func(ctx context.Context) error {
-		_, err := infra.PlayerByUserID(ctx, p.db, userRegistrationEvent.UserId)
+		_, err := infra.PlayerByUserID(ctx, p.db, userRegisteredEvent.UserId)
 		if err == sql.ErrNoRows {
 			now := clock.Now()
 			player := &infra.Player{
-				ID:     uuid.Generate(),
-				UserID: userRegistrationEvent.UserId,
+				ID:        uuid.Generate(),
+				UserID:    userRegisteredEvent.UserId,
 				CreatedAt: now,
 				UpdatedAt: now,
 			}

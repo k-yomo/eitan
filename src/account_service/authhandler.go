@@ -9,9 +9,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/k-yomo/eitan/src/account_service/infra"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
+	"github.com/k-yomo/eitan/src/internal/event"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/pkg/clock"
-	"github.com/k-yomo/eitan/src/pkg/event"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
 	"github.com/k-yomo/eitan/src/pkg/uuid"
@@ -123,7 +123,7 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) (
 		return nil, err
 	}
 
-	m := eitan.UserRegistrationEvent{
+	m := eitan.UserRegisteredEvent{
 		UserId:      user.ID,
 		Provider:    gothUser.Provider,
 		Email:       userProfile.Email,
@@ -131,14 +131,14 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) (
 	}
 	mBytes, err := proto.Marshal(&m)
 	if err != nil {
-		logger.Error("marshal AccountRegistrationEvent failed", zap.Error(err))
+		logger.Error("marshal UserRegisteredEvent failed", zap.Error(err))
 	} else {
-		t := a.pubsubClient.Topic(event.UserRegistrationTopicName)
+		t := a.pubsubClient.Topic(event.UserRegisteredTopicName)
 		// TODO: Fix to publish at-least-once
 		if _, err := t.Publish(ctx, &pubsub.Message{Data: mBytes}).Get(ctx); err != nil {
-			logger.Error("publish AccountRegistrationEvent failed", zap.Error(err), zap.String("AccountRegistrationEvent", m.String()))
+			logger.Error("publish UserRegisteredEvent failed", zap.Error(err), zap.String("UserRegisteredEvent", m.String()))
 		}
-		logger.Debug("published AccountRegistrationEvent", zap.Error(err))
+		logger.Debug("published UserRegisteredEvent", zap.Error(err))
 	}
 
 	return user, nil

@@ -17,7 +17,7 @@ message UserProfile {
     optional string screen_img_url = 3;
 }
 
-message UserRegistrationEvent {
+message UserRegisteredEvent {
     string user_id = 1;
     string provider = 2;
     string email = 3;

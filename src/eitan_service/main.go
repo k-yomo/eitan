@@ -93,7 +93,7 @@ func main() {
 	defer pubsubSubscriber.Close()
 
 	pubsubHandler := NewPubSubHandler(db)
-	err = pubsubSubscriber.HandleSubscriptionFunc("eitan.account.user-registration", pubsubHandler.HandleUserRegistration)
+	err = pubsubSubscriber.HandleSubscriptionFunc("eitan.account.user-registered", pubsubHandler.HandleUserRegisteredEvent)
 	if err != nil {
 		logger.Fatal("set pubsub subscription handler func failed", zap.Error(err))
 	}
