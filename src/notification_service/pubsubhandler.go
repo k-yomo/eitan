@@ -45,27 +45,8 @@ Eitan Team
 		"",
 	)
 
-	key := datastore.NameKey("UserRegisteredEvent", userRegisteredEvent.UserId, nil)
-	_, err := p.dsClient.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
-		if err := tx.Get(key, &eitan.UserRegisteredEvent{}); err == nil {
-			// entity exists means email already sent
-			return nil
-		} else {
-			if err != datastore.ErrNoSuchEntity {
-				return err
-			}
-		}
-
-		if _, err := tx.Put(key, &userRegisteredEvent); err != nil {
-			return err
-		}
-		if err := p.emailClient.Send(ctx, sgmail); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return errors.Wrap(err, "process UserRegisteredEvent")
+	if err := p.emailClient.Send(ctx, sgmail); err != nil {
+		return err
 	}
 
 	return nil

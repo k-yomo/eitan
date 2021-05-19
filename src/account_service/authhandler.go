@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/k-yomo/eitan/src/account_service/infra"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
-	"github.com/k-yomo/eitan/src/internal/event"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
+	"github.com/k-yomo/eitan/src/internal/pubsubevent"
 	"github.com/k-yomo/eitan/src/pkg/clock"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
@@ -97,11 +97,35 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) (
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
-	err := a.txManager.RunInTx(ctx, func(ctx context.Context) error {
+
+	userRegisteredEventData, err := proto.Marshal(&eitan.UserRegisteredEvent{
+		UserId:      user.ID,
+		Provider:    gothUser.Provider,
+		Email:       userProfile.Email,
+		DisplayName: userProfile.Email,
+	})
+	if err != nil {
+		logger.Error("marshal UserRegisteredEvent failed", zap.Error(err))
+	}
+	userRegisteredEvent := infra.PubsubEvent{
+		ID: uuid.Generate(),
+		DeduplicateKey: sql.NullString{
+			String: pubsubevent.NewDeduplicateKey(pubsubevent.UserRegisteredTopicName, user.ID),
+			Valid:  true,
+		},
+		Topic:     pubsubevent.UserRegisteredTopicName.String(),
+		Data:      string(userRegisteredEventData),
+		CreatedAt: now,
+	}
+
+	err = a.txManager.RunInTx(ctx, func(ctx context.Context) error {
 		if err := user.Insert(ctx, a.db); err != nil {
 			return err
 		}
 		if err := userProfile.Insert(ctx, a.db); err != nil {
+			return err
+		}
+		if err := userRegisteredEvent.Insert(ctx, a.db); err != nil {
 			return err
 		}
 		switch gothUser.Provider {
@@ -123,22 +147,16 @@ func (a *AuthHandler) createOauthUser(ctx context.Context, gothUser goth.User) (
 		return nil, err
 	}
 
-	m := eitan.UserRegisteredEvent{
-		UserId:      user.ID,
-		Provider:    gothUser.Provider,
-		Email:       userProfile.Email,
-		DisplayName: userProfile.Email,
+	t := a.pubsubClient.Topic(userRegisteredEvent.Topic)
+	m := pubsub.Message{
+		Data: []byte(userRegisteredEvent.Data),
+		Attributes: pubsubevent.SetDeduplicateKey(
+			map[string]string{},
+			userRegisteredEvent.DeduplicateKey.String,
+		),
 	}
-	mBytes, err := proto.Marshal(&m)
-	if err != nil {
-		logger.Error("marshal UserRegisteredEvent failed", zap.Error(err))
-	} else {
-		t := a.pubsubClient.Topic(event.UserRegisteredTopicName)
-		// TODO: Fix to publish at-least-once
-		if _, err := t.Publish(ctx, &pubsub.Message{Data: mBytes}).Get(ctx); err != nil {
-			logger.Error("publish UserRegisteredEvent failed", zap.Error(err), zap.String("UserRegisteredEvent", m.String()))
-		}
-		logger.Debug("published UserRegisteredEvent", zap.Error(err))
+	if _, err := t.Publish(ctx, &m).Get(ctx); err != nil {
+		logger.Error("publish UserRegisteredEvent failed", zap.Error(err), zap.Any("UserRegisteredEvent", userRegisteredEvent))
 	}
 
 	return user, nil

@@ -22,3 +22,15 @@ CREATE TABLE accountdb.google_auth (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'アカウント';
+
+-- The schema must be the same as `src/pubsub_publisher/pubsub_event`
+CREATE TABLE accountdb.pubsub_events (
+  id VARCHAR(255) NOT NULL PRIMARY KEY COMMENT 'イベントID',
+  deduplicate_key VARCHAR(255) COMMENT '重複排除キー',
+  topic VARCHAR(255) NOT NULL COMMENT 'トピック名',
+  data TEXT NOT NULL COMMENT 'データ',
+  is_published BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Publish済みか否か',
+  published_at DATETIME COMMENT 'Publishした日時',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX is_published_idx (is_published)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'PubSubイベント';

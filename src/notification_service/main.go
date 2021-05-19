@@ -11,6 +11,7 @@ import (
 	"github.com/k-yomo/pm"
 	"github.com/k-yomo/pm/middleware/logging/pm_zap"
 	"github.com/k-yomo/pm/middleware/pm_autoack"
+	"github.com/k-yomo/pm/middleware/pm_effectively_once"
 	"github.com/k-yomo/pm/middleware/pm_recovery"
 	"github.com/sendgrid/sendgrid-go"
 	"go.uber.org/zap"
@@ -49,6 +50,7 @@ func main() {
 			pm_recovery.SubscriptionInterceptor(),
 			pm_zap.SubscriptionInterceptor(logger),
 			pm_autoack.SubscriptionInterceptor(),
+			pm_effectively_once.SubscriptionInterceptor(pm_effectively_once.NewDatastoreMutexer("PubSubEvent", dsClient)),
 		),
 	)
 	defer pubsubSubscriber.Close()

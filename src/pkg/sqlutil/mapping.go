@@ -50,6 +50,7 @@ func PtrToFloat64(float64p *float64) sql.NullFloat64 {
 	return sql.NullFloat64{}
 }
 
+// TOOD: replace with sql.NullTime when https://github.com/xo/xo/pull/239 merged
 func NullTimeToPtr(nullTime mysql.NullTime) *time.Time {
 	if nullTime.Valid {
 		t := nullTime.Time
