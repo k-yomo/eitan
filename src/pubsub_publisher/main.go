@@ -62,7 +62,7 @@ func publishMessages(ctx context.Context, db *sqlx.DB, pubsubClient *pubsub.Clie
 			attributes = pubsubevent.SetDeduplicateKey(attributes, e.DeduplicateKey.String)
 		}
 		res := pubsubClient.Topic(e.Topic).Publish(ctx, &pubsub.Message{
-			Data: []byte(e.Data),
+			Data:       []byte(e.Data),
 			Attributes: attributes,
 		})
 		go func() {

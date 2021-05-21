@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"github.com/jmoiron/sqlx"
 	"github.com/k-yomo/eitan/src/account_service/infra"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
@@ -18,6 +17,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 )
 
@@ -174,5 +174,5 @@ func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func handleServerError(ctx context.Context, err error, w http.ResponseWriter) {
 	logging.Logger(ctx).Error(err.Error(), zap.Error(err))
 	w.WriteHeader(500)
-	w.Write([]byte(`{"status":"500"}`))
+	_, _ = w.Write([]byte(`{"status":"500"}`))
 }

@@ -67,7 +67,6 @@ func (s *sessionManagerImpl) Authenticate(sid string) (userID string, err error)
 
 func (s *sessionManagerImpl) Login(w http.ResponseWriter, r *http.Request, userID string) error {
 	ctx := r.Context()
-	sess := sessions.NewSession(s.redisStore, session.CookieSessionKey)
 	sess, err := s.redisStore.New(r, session.CookieSessionKey)
 	if err != nil {
 		return err

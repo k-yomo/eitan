@@ -1,5 +1,5 @@
 terraform {
   backend "gcs" {
-    bucket = "eitan-prod-infra-tf-state"
+    bucket = "eitan-prod-tf-state"
   }
 }

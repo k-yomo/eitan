@@ -4,11 +4,11 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/golang/protobuf/proto"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/notification_service/internal/email"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"google.golang.org/protobuf/proto"
 )
 
 type PubSubHandler struct {
@@ -35,7 +35,7 @@ func (p *PubSubHandler) HandleUserRegisteredEvent(ctx context.Context, m *pubsub
 		&mail.Email{Name: userRegisteredEvent.DisplayName, Address: userRegisteredEvent.Email},
 		// TODO: fix body
 		`
-Dear ` + userRegisteredEvent.DisplayName + `,
+Dear `+userRegisteredEvent.DisplayName+`,
 
 Thank you for signing up for Eitan.
 

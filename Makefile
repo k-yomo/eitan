@@ -27,6 +27,18 @@ gen-model:
 	xo mysql://root@localhost:13306/accountdb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/account_service/infra
 	xo mysql://root@localhost:13306/eitandb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/eitan_service/infra
 
+test-account:
+	go test ./src/account_service/... -v $(TESTARGS) -coverprofile=account_service.coverage.out
+
+test-eitan:
+	go test ./src/eitan_service/... -v $(TESTARGS) -coverprofile=eitan_service.coverage.out
+
+test-notification:
+	go test ./src/notification_service/... -v $(TESTARGS) -coverprofile=notification_service.coverage.out
+
+lint:
+	@golangci-lint run
+
 .PHONY: gen-graphql
 gen-graphql:
 	cd src/eitan_service; go generate ./...

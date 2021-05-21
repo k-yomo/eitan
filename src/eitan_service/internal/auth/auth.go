@@ -28,7 +28,7 @@ func NewSessionIDMiddleware() func(next http.Handler) http.Handler {
 	}
 }
 
-type authenticatedUserIDKey struct {}
+type authenticatedUserIDKey struct{}
 
 // NewHasRole returns a function to authenticate user based on role
 // role is defined at defs/graphql/schema.graphql

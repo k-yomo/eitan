@@ -11,7 +11,7 @@ type Manager interface {
 	RunInTx(ctx context.Context, f func(ctx context.Context) error) error
 }
 
-type txCtxKey struct {}
+type txCtxKey struct{}
 
 type dbTxManager struct {
 	db *sqlx.DB
