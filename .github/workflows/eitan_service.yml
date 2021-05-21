@@ -64,5 +64,5 @@ jobs:
         run: |
           gcloud --quiet auth configure-docker
           docker build -t eitan-service -f eitan_service.Dockerfile .
-          docker tag eitan-service asia.gcr.io/eitan-prod/eitan-service:${{ github.sha }}
-          docker push asia.gcr.io/eitan-prod/eitan-service:${{ github.sha }}
+          docker tag eitan-service asia.gcr.io/eitan-prod/eitan-service:${{ github.event.release.tag_name }}
+          docker push asia.gcr.io/eitan-prod/eitan-service:${{ github.event.release.tag_name }}
