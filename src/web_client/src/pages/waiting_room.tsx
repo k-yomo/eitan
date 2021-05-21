@@ -25,11 +25,8 @@ const waitingRoomPageRandomMatchRoomDecided = gql`
 const WaitingRoom: NextPage<WithAuthProps> = ({
   currentUserProfile,
 }: WithAuthProps) => {
-  const {
-    data,
-    loading,
-    error,
-  } = useWaitingRoomPageRandomMatchRoomDecidedSubscription();
+  const { data, loading, error } =
+    useWaitingRoomPageRandomMatchRoomDecidedSubscription();
 
   if (error) {
     // TODO: Show error page

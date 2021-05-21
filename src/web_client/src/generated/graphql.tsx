@@ -331,7 +331,7 @@ export function useWaitingRoomPageRandomMatchRoomDecidedSubscription(
     WaitingRoomPageRandomMatchRoomDecidedSubscriptionVariables
   >(WaitingRoomPageRandomMatchRoomDecidedDocument, options);
 }
-export type WaitingRoomPageRandomMatchRoomDecidedSubscriptionHookResult = ReturnType<
-  typeof useWaitingRoomPageRandomMatchRoomDecidedSubscription
->;
-export type WaitingRoomPageRandomMatchRoomDecidedSubscriptionResult = Apollo.SubscriptionResult<WaitingRoomPageRandomMatchRoomDecidedSubscription>;
+export type WaitingRoomPageRandomMatchRoomDecidedSubscriptionHookResult =
+  ReturnType<typeof useWaitingRoomPageRandomMatchRoomDecidedSubscription>;
+export type WaitingRoomPageRandomMatchRoomDecidedSubscriptionResult =
+  Apollo.SubscriptionResult<WaitingRoomPageRandomMatchRoomDecidedSubscription>;
