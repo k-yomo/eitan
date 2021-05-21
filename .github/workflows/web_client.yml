@@ -6,8 +6,8 @@ on:
       - "src/web_client/**"
 
 jobs:
-  build:
-    name: Build and lint
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
