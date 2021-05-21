@@ -65,4 +65,4 @@ jobs:
           gcloud --quiet auth configure-docker
           docker build -t account-service -f account_service.Dockerfile .
           docker tag account-service asia.gcr.io/eitan-prod/account-service:${{ github.sha }}
-          docker push asia.gcr.io/eitan-prod/account-service
+          docker push asia.gcr.io/eitan-prod/account-service:${{ github.sha }}
