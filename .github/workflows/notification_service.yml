@@ -64,5 +64,5 @@ jobs:
         run: |
           gcloud --quiet auth configure-docker
           docker build -t notification-service -f notification_service.Dockerfile .
-          docker tag notification-service asia.gcr.io/eitan-prod/notification-service: ${GITHUB_REF##*/}
-          docker push asia.gcr.io/eitan-prod/notification-service: ${GITHUB_REF##*/}
+          docker tag notification-service asia.gcr.io/eitan-prod/notification-service: ${GITHUB_REF#refs/*/}
+          docker push asia.gcr.io/eitan-prod/notification-service: ${GITHUB_REF#refs/*/}
