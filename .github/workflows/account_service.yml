@@ -1,0 +1,68 @@
+name: Account Service Workflow
+on:
+  push:
+    paths:
+      - ".github/workflows/account_service.yml"
+      - "src/account_service/**"
+      - "src/internal/**"
+      - "src/pkg/**"
+
+env:
+  GO111MODULE: "on"
+  TZ: "Asia/Tokyo"
+
+jobs:
+  test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+
+      - name: Cache modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Download Modules
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: go mod download
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v2.5.2
+        with:
+          version: v1.33
+          working-directory: src/account_service
+
+      - name: Test
+        run: make test-account
+
+  push-image:
+    name: Push Image
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Cloud SDK
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          version: '297.0.1'
+          service_account_key: ${{ secrets.PROD_GCP_CI_USER_KEY_BASE64 }}
+
+      - name: Push Docker Image to Prod GCR
+        if: github.ref == 'refs/heads/master'
+        run: |
+          gcloud --quiet auth configure-docker
+          docker build -t account-service -f account_service.Dockerfile .
+          docker tag account-service asia.gcr.io/eitan-prod/account-service:${{ github.sha }}
+          docker push asia.gcr.io/eitan-prod/account-service
