@@ -33,6 +33,9 @@ test-account:
 test-eitan:
 	go test ./src/eitan_service/... -v $(TESTARGS) -coverprofile=eitan_service.coverage.out
 
+test-notification:
+	go test ./src/notification_service/... -v $(TESTARGS) -coverprofile=notification_service.coverage.out
+
 lint:
 	@golangci-lint run
 

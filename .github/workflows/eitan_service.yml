@@ -1,9 +1,9 @@
-name: Account Service Workflow
+name: Eitan Service Workflow
 on:
   push:
     paths:
-      - ".github/workflows/account_service.yml"
-      - "src/account_service/**"
+      - ".github/workflows/eitan_service.yml"
+      - "src/eitan_service/**"
       - "src/internal/**"
       - "src/pkg/**"
 
@@ -40,10 +40,10 @@ jobs:
         uses: golangci/golangci-lint-action@v2.5.2
         with:
           version: v1.33
-          working-directory: src/account_service
+          working-directory: src/eitan_service
 
       - name: Test
-        run: make test-account
+        run: make test-eitan
 
   push-image:
     name: Push Image
@@ -63,6 +63,6 @@ jobs:
         if: contains(github.ref, 'tags/v')
         run: |
           gcloud --quiet auth configure-docker
-          docker build -t account-service -f account_service.Dockerfile .
-          docker tag account-service asia.gcr.io/eitan-prod/account-service:${{ github.sha }}
-          docker push asia.gcr.io/eitan-prod/account-service
+          docker build -t eitan-service -f eitan_service.Dockerfile .
+          docker tag eitan-service asia.gcr.io/eitan-prod/eitan-service:${{ github.sha }}
+          docker push asia.gcr.io/eitan-prod/eitan-service
