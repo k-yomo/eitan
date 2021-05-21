@@ -9,9 +9,9 @@ type AppEnv string
 
 const (
 	Local AppEnv = "local"
-	Test         = "test"
-	Dev          = "dev"
-	Prod         = "prod"
+	Test  AppEnv = "test"
+	Dev   AppEnv = "dev"
+	Prod  AppEnv = "prod"
 )
 
 type AppConfig struct {

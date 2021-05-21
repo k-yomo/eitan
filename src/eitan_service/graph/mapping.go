@@ -25,8 +25,7 @@ func mapToGraphqlUserProfile(up *eitan.UserProfile) *model.UserProfile {
 
 func mapToGraphqlPlayer(p *infra.Player) *model.Player {
 	return &model.Player{
-		ID: p.ID,
+		ID:     p.ID,
 		UserID: p.UserID,
 	}
 }
-

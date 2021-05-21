@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"database/sql"
-	"github.com/golang/protobuf/proto"
 	"github.com/jmoiron/sqlx"
 	"github.com/k-yomo/eitan/src/eitan_service/infra"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
@@ -12,6 +11,7 @@ import (
 	"github.com/k-yomo/eitan/src/pkg/tx"
 	"github.com/k-yomo/eitan/src/pkg/uuid"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
 )
 
 type PubSubHandler struct {

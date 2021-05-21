@@ -33,6 +33,9 @@ test-account:
 test-eitan:
 	go test ./src/eitan_service/... -v $(TESTARGS) -coverprofile=eitan_service.coverage.out
 
+lint:
+	@golangci-lint run
+
 .PHONY: gen-graphql
 gen-graphql:
 	cd src/eitan_service; go generate ./...

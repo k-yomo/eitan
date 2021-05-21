@@ -74,7 +74,7 @@ func main() {
 	// healthcheck
 	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"200"}`))
+		_, _ = w.Write([]byte(`{"status":"200"}`))
 	}).Methods("GET")
 
 	goth.UseProviders(
