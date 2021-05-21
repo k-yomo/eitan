@@ -8,11 +8,25 @@ resource "google_service_account_key" "ci_user_key" {
   service_account_id = google_service_account.ci_user.name
 }
 
-// grant owner role to execute terraform plan on CI
-resource "google_project_iam_member" "ci_user_owner_binding" {
+resource "google_project_iam_member" "ci_user_viewer_binding" {
   project = var.project
   member  = "serviceAccount:${google_service_account.ci_user.email}"
-  role    = "roles/owner"
+  role    = "roles/viewer"
+}
+resource "google_project_iam_member" "ci_user_object_viewer_binding" {
+  project = var.project
+  member  = "serviceAccount:${google_service_account.ci_user.email}"
+  role    = "roles/storage.objectViewer"
+}
+resource "google_storage_bucket_iam_member" "ci_user_tfstate_admin" {
+  bucket = google_storage_bucket.infra_tf_state.name
+  member = "serviceAccount:${google_service_account.ci_user.email}"
+  role   = "roles/storage.admin"
+}
+resource "google_storage_bucket_iam_member" "ci_user_gcr_admin" {
+  bucket = "asia.artifacts.eitan-${var.env}.appspot.com"
+  member = "serviceAccount:${google_service_account.ci_user.email}"
+  role   = "roles/storage.admin"
 }
 
 
