@@ -33,40 +33,48 @@ resource "google_storage_bucket_iam_member" "ci_user_gcr_admin" {
 #######################################
 # Kubernetes Service Account
 #######################################
-resource "google_service_account" "account_service" {
+resource "google_service_account" "gke_node" {
   project      = var.project
-  account_id   = "account-service-${var.env}"
-  display_name = "account-service KSA Service Account"
+  account_id   = "gke-node-sa-${var.env}"
+  display_name = "GKE Node Service Account"
 }
-
-resource "google_service_account" "eitan_service" {
-  project      = var.project
-  account_id   = "eitan-service-${var.env}"
-  display_name = "eitan-service KSA Service Account"
-}
-
-resource "google_service_account" "notification_service" {
-  project      = var.project
-  account_id   = "notification-service-${var.env}"
-  display_name = "notification-service KSA Service Account"
-}
-
-locals {
-  app_service_account_emails = toset([
-    google_service_account.account_service.email,
-    google_service_account.eitan_service.email,
-    google_service_account.notification_service.email
+resource "google_project_iam_member" "gke_node" {
+  for_each = toset([
+    "roles/logging.logWriter",
+    "roles/monitoring.metricWriter",
+    "roles/monitoring.viewer",
   ])
+  member = "serviceAccount:${google_service_account.gke_node.email}"
+  role   = each.value
+}
+resource "google_storage_bucket_iam_member" "gke_node_pull_gcr" {
+  bucket = "asia.artifacts.eitan-${var.env}.appspot.com"
+  member = "serviceAccount:${google_service_account.gke_node.email}"
+  role   = "roles/storage.objectViewer"
 }
 
-resource "google_project_iam_member" "account_service_workload_identity_user" {
-  for_each = local.app_service_account_emails
-  member   = "serviceAccount:${each.value}"
-  role     = "roles/iam.workloadIdentityUser"
+module "account_service" {
+  source       = "../modules/microservice_service_account"
+  project      = var.project
+  env          = var.env
+  service_name = "account-service"
 }
 
-resource "google_project_iam_member" "account_service_pull_gcr" {
-  for_each = local.app_service_account_emails
-  member   = "serviceAccount:${each.value}"
-  role     = "roles/storage.objectViewer"
+module "eitan_service" {
+  source       = "../modules/microservice_service_account"
+  project      = var.project
+  env          = var.env
+  service_name = "eitan-service"
+}
+
+module "notification_service" {
+  source       = "../modules/microservice_service_account"
+  project      = var.project
+  env          = var.env
+  service_name = "notification-service"
+}
+
+resource "google_project_iam_member" "notification_service_datastore_user" {
+  member = "serviceAccount:${module.notification_service.service_account_email}"
+  role   = "roles/datastore.user"
 }

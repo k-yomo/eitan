@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: notification-service
+spec:
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      serviceAccountName: notification-service-sa
+      containers:
+        - name: server
+          image: asia.gcr.io/eitan-prod/notification-service:v0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: APP_ENV
+              value: "local" # TODO: Change APP_ENV and SEND_GRID_API_KEY once sendgrid registration is done
+            - name: GCP_PROJECT_ID
+              value: "eitan-prod"
+            - name: SEND_GRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service-secret
+                  key: send_grid_api_key
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

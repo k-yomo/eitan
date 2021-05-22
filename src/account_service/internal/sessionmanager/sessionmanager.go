@@ -41,7 +41,7 @@ func NewSessionManager(appConfig *config.AppConfig, redisClient *redis.Client) (
 		Path:     "/",
 		Domain:   appConfig.SessionCookieDomain,
 		MaxAge:   60 * 60 * 24 * 365, // 1 year
-		Secure:   appConfig.IsDeployedEnv(),
+		Secure:   appConfig.Env.IsDeployed(),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})

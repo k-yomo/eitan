@@ -17,7 +17,7 @@ import (
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/sharedctx"
 	"github.com/k-yomo/eitan/src/internal/tracing"
-	"github.com/k-yomo/eitan/src/pkg/csrf"
+	"github.com/k-yomo/eitan/src/pkg/healthserver"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/google"
@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
@@ -36,7 +37,7 @@ func main() {
 		panic(fmt.Sprintf("initialize app config failed: %v", err))
 	}
 
-	logger, err := logging.NewLogger(!appConfig.IsDeployedEnv())
+	logger, err := logging.NewLogger(!appConfig.Env.IsDeployed())
 	if err != nil {
 		panic(fmt.Sprintf("initialize logger failed: %v", err))
 	}
@@ -63,19 +64,13 @@ func main() {
 	}
 	defer pubsubClient.Close()
 
-	if appConfig.IsDeployedEnv() {
+	if appConfig.Env.IsDeployed() {
 		if err := tracing.InitTracer(); err != nil {
 			logger.Fatal("set trace provider failed", zap.Error(err))
 		}
 	}
 
 	r := newRouter(appConfig, logger)
-
-	// healthcheck
-	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"200"}`))
-	}).Methods("GET")
 
 	goth.UseProviders(
 		google.New(appConfig.GoogleAuthClientKey, appConfig.GoogleAuthSecret, fmt.Sprintf("%s/auth/google/callback", appConfig.AppRootURL), "email", "profile"),
@@ -97,6 +92,7 @@ func main() {
 	)
 
 	eitan.RegisterAccountServiceServer(s, NewAccountServiceServer(db, sessionManager))
+	grpc_health_v1.RegisterHealthServer(s, healthserver.NewHealthServer())
 	reflection.Register(s)
 
 	eg := errgroup.Group{}
@@ -126,6 +122,6 @@ func newRouter(appConfig *config.AppConfig, logger *zap.Logger) *mux.Router {
 
 	r.Use(corsMiddleware)
 	r.Use(logging.NewMiddleware(appConfig.GCPProjectID, logger))
-	r.Use(csrf.NewCSRFValidationMiddleware(appConfig.IsDeployedEnv()))
+	// r.Use(csrf.NewCSRFValidationMiddleware(appConfig.Env.IsDeployed()))
 	return r
 }
