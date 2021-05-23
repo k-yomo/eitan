@@ -9,24 +9,22 @@ resource "google_service_account_key" "ci_user_key" {
 }
 
 resource "google_project_iam_member" "ci_user_viewer_binding" {
-  project = var.project
-  member  = "serviceAccount:${google_service_account.ci_user.email}"
-  role    = "roles/viewer"
-}
-resource "google_project_iam_member" "ci_user_object_viewer_binding" {
-  project = var.project
-  member  = "serviceAccount:${google_service_account.ci_user.email}"
-  role    = "roles/storage.objectViewer"
+  for_each = toset([
+    "roles/viewer",
+    "roles/storage.objectViewer",
+  ])
+  member = "serviceAccount:${google_service_account.ci_user.email}"
+  role   = each.value
 }
 resource "google_storage_bucket_iam_member" "ci_user_tfstate_admin" {
-  bucket = google_storage_bucket.infra_tf_state.name
+  bucket = google_storage_bucket.tf_state.name
   member = "serviceAccount:${google_service_account.ci_user.email}"
-  role   = "roles/storage.admin"
+  role   = "roles/storage.objectAdmin"
 }
 resource "google_storage_bucket_iam_member" "ci_user_gcr_admin" {
   bucket = "asia.artifacts.eitan-${var.env}.appspot.com"
   member = "serviceAccount:${google_service_account.ci_user.email}"
-  role   = "roles/storage.admin"
+  role   = "roles/storage.objectAdmin"
 }
 
 

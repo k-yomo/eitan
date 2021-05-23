@@ -8,17 +8,17 @@ import (
 )
 
 type AppConfig struct {
-	Env            appenv.Env   `default:"local" envconfig:"APP_ENV"`
-	RestPort       int      `default:"4000" envconfig:"REST_PORT"`
-	GRPCPort       int      `default:"4040" envconfig:"GRPC_PORT"`
-	AppRootURL     string   `default:"http://account.local.eitan-flash.com:4000" envconfig:"APP_ROOT_URL"`
-	WebAppURL      string   `default:"http://local.eitan-flash.com:3000" envconfig:"WEB_APP_URL"`
-	AllowedOrigins []string `default:"http://local.eitan-flash.com:3000" envconfig:"ALLOWED_ORIGINS"`
-	SessionCookieDomain string `default:"local.eitan-flash.com" envconfig:"SESSION_COOKIE_DOMAIN"`
-	GCPProjectID   string   `default:"local" envconfig:"GCP_PROJECT_ID"`
-	GoogleAuthClientKey string `envconfig:"GOOGLE_AUTH_CLIENT_KEY"`
-	GoogleAuthSecret    string `envconfig:"GOOGLE_AUTH_SECRET"`
-	RedisURL string `default:"localhost:6379" envconfig:"REDIS_URL"`
+	Env                 appenv.Env `default:"local" envconfig:"APP_ENV"`
+	RestPort            int        `default:"4000" envconfig:"REST_PORT"`
+	GRPCPort            int        `default:"4040" envconfig:"GRPC_PORT"`
+	AppRootURL          string     `default:"http://account.local.eitan-flash.com:4000" envconfig:"APP_ROOT_URL"`
+	WebAppURL           string     `default:"http://local.eitan-flash.com:3000" envconfig:"WEB_APP_URL"`
+	AllowedOrigins      []string   `default:"http://local.eitan-flash.com:3000" envconfig:"ALLOWED_ORIGINS"`
+	SessionCookieDomain string     `default:"local.eitan-flash.com" envconfig:"SESSION_COOKIE_DOMAIN"`
+	GCPProjectID        string     `default:"local" envconfig:"GCP_PROJECT_ID"`
+	GoogleAuthClientKey string     `envconfig:"GOOGLE_AUTH_CLIENT_KEY"`
+	GoogleAuthSecret    string     `envconfig:"GOOGLE_AUTH_SECRET"`
+	RedisURL            string     `default:"localhost:6379" envconfig:"REDIS_URL"`
 }
 
 func NewAppConfig() (*AppConfig, error) {

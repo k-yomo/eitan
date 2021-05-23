@@ -1,4 +1,4 @@
-resource "google_storage_bucket" "infra_tf_state" {
+resource "google_storage_bucket" "tf_state" {
   project  = var.project
   name     = "eitan-${var.env}-tf-state"
   location = "asia"

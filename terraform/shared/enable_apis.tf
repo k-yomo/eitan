@@ -7,6 +7,7 @@ resource "google_project_service" "enable_api" {
     "dns.googleapis.com",
     "iam.googleapis.com",
     "monitoring.googleapis.com",
+    "sqladmin.googleapis.com",
     "redis.googleapis.com",
     "secretmanager.googleapis.com",
     "servicenetworking.googleapis.com"

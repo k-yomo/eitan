@@ -8,8 +8,8 @@ import (
 
 type AppConfig struct {
 	Env            appenv.Env `default:"local" envconfig:"APP_ENV"`
-	GCPProjectID   string `default:"local" envconfig:"GCP_PROJECT_ID"`
-	SendGridAPIKey string `envconfig:"SEND_GRID_API_KEY"`
+	GCPProjectID   string     `default:"local" envconfig:"GCP_PROJECT_ID"`
+	SendGridAPIKey string     `envconfig:"SEND_GRID_API_KEY"`
 }
 
 func NewAppConfig() (*AppConfig, error) {
