@@ -15,7 +15,7 @@ resource "google_dns_record_set" "eitan_flash_com" {
 
   managed_zone = google_dns_managed_zone.eitan_flash_com.name
 
-  rrdatas = ["76.76.21.21"]
+  rrdatas = ["76.76.21.21"] // vercel
 }
 
 resource "google_dns_record_set" "www_eitan_flash_com" {
@@ -26,4 +26,15 @@ resource "google_dns_record_set" "www_eitan_flash_com" {
   managed_zone = google_dns_managed_zone.eitan_flash_com.name
 
   rrdatas = ["cname.vercel-dns.com."]
+}
+
+
+resource "google_dns_record_set" "api_eitan_flash_com" {
+  name = "api.${google_dns_managed_zone.eitan_flash_com.dns_name}"
+  type = "A"
+  ttl  = 86400
+
+  managed_zone = google_dns_managed_zone.eitan_flash_com.name
+
+  rrdatas = ["104.198.116.7"] // istio gateway
 }

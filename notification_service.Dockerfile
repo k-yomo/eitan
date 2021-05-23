@@ -13,7 +13,7 @@ COPY src/notification_service src/notification_service
 COPY src/internal src/internal
 COPY src/pkg src/pkg
 
-RUN go build -o bin/server -ldflags "-w -s" ./src/notification_service
+RUN CGO_ENABLED=0 go build -o bin/server -ldflags "-w -s" ./src/notification_service
 
 # exec
 FROM scratch

@@ -20,6 +20,7 @@ import (
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/sharedctx"
 	"github.com/k-yomo/eitan/src/internal/tracing"
+	"github.com/k-yomo/eitan/src/pkg/appenv"
 	"github.com/k-yomo/eitan/src/pkg/gqlopentelemetry"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/eitan/src/pkg/tx"
@@ -109,8 +110,14 @@ func main() {
 	srv.Use(logging.GraphQLResponseInterceptor{})
 
 	r := newRouter(appConfig, logger)
+	// healthcheck
+	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"200"}`))
+	}).Methods("GET")
+
 	r.Handle("/query", srv)
-	if appConfig.Env == config.Local {
+	if appConfig.Env == appenv.Local {
 		r.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	}
 

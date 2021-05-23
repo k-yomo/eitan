@@ -27,7 +27,7 @@ func main() {
 		panic(fmt.Sprintf("initialize app config failed: %v", err))
 	}
 
-	logger, err := logging.NewLogger(!appConfig.IsDeployedEnv())
+	logger, err := logging.NewLogger(!appConfig.Env.IsDeployed())
 	if err != nil {
 		panic(fmt.Sprintf("initialize logger failed: %v", err))
 	}
@@ -56,7 +56,7 @@ func main() {
 	defer pubsubSubscriber.Close()
 
 	var emailClient email.Client
-	if appConfig.IsDeployedEnv() {
+	if appConfig.Env.IsDeployed() {
 		emailClient = email.NewSendgridEmailClient(sendgrid.NewSendClient(appConfig.GCPProjectID))
 	} else {
 		emailClient = email.NewNoopEmailClient()

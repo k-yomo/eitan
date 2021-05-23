@@ -2,25 +2,17 @@ package config
 
 import (
 	"fmt"
+	"github.com/k-yomo/eitan/src/pkg/appenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 )
 
-type AppEnv string
-
-const (
-	Local AppEnv = "local"
-	Test  AppEnv = "test"
-	Dev   AppEnv = "dev"
-	Prod  AppEnv = "prod"
-)
-
 type AppConfig struct {
-	Env            AppEnv   `default:"local" envconfig:"APP_ENV"`
-	Port           int      `default:"5000"`
-	GCPProjectID   string   `default:"local" envconfig:"GCP_PROJECT_ID"`
-	AllowedOrigins []string `default:"http://local.eitan-flash.com:3000" envconfig:"ALLOWED_ORIGINS"`
-	RedisURL       string   `default:"localhost:6379" envconfig:"REDIS_URL"`
+	Env            appenv.Env `default:"local" envconfig:"APP_ENV"`
+	Port           int        `default:"5000"`
+	GCPProjectID   string     `default:"local" envconfig:"GCP_PROJECT_ID"`
+	AllowedOrigins []string   `default:"http://local.eitan-flash.com:3000" envconfig:"ALLOWED_ORIGINS"`
+	RedisURL       string     `default:"localhost:6379" envconfig:"REDIS_URL"`
 }
 
 func NewAppConfig() (*AppConfig, error) {
@@ -28,7 +20,7 @@ func NewAppConfig() (*AppConfig, error) {
 	if err := envconfig.Process("", appConfig); err != nil {
 		return nil, err
 	}
-	if !map[AppEnv]bool{Local: true, Dev: true, Prod: true}[appConfig.Env] {
+	if !appConfig.Env.IsValid() {
 		return nil, errors.Errorf("%s is invalid for env", appConfig.Env)
 	}
 	return appConfig, nil
@@ -47,7 +39,7 @@ func NewAPIConfig() (*APIConfig, error) {
 }
 
 func (a AppConfig) IsDeployedEnv() bool {
-	return a.Env != Local && a.Env != Test
+	return a.Env.IsDeployed()
 }
 
 type DBConfig struct {

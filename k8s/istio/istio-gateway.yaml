@@ -1,4 +1,4 @@
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: istio-gateway
@@ -14,7 +14,7 @@ spec:
         - "*"
 
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: istio-ingress
@@ -24,11 +24,19 @@ spec:
   gateways:
     - istio-gateway
   http:
-    - match:
-      - uri:
-        exact: /account
-    - route:
-        - destination:
-            host: account-service
-            port:
-              number: 80
+  - match:
+    - uri:
+        prefix: /auth
+    route:
+      - destination:
+          host: account-service.account-service.svc.cluster.local
+          port:
+            number: 80
+  - match:
+    - uri:
+        prefix: /*
+    route:
+      - destination:
+          host: eitan-service.eitan-service.svc.cluster.local
+          port:
+            number: 80
