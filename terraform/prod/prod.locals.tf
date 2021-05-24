@@ -2,6 +2,8 @@
 # IP Ranges
 #######################################
 locals {
+  default_region = "asia-northeast1"
+
   main_cidr_range = "10.0.0.0/8"
   // GKE /16
   gke_cidr_range          = cidrsubnet(local.main_cidr_range, 8, 0)

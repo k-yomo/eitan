@@ -1,10 +1,13 @@
+resource "random_id" "db_name_suffix" {
+  byte_length = 4
+}
+
 resource "google_sql_database_instance" "eitan_db" {
   provider = google-beta
 
-  name   = "eitan-db-${var.env}"
-  region = "us-central1"
-
-  depends_on = [google_service_networking_connection.private_service_connection]
+  name             = "eitan-db-instance-${var.env}"
+  region           = local.default_region
+  database_version = "MYSQL_8_0"
 
   settings {
     tier = "db-f1-micro"
@@ -17,6 +20,8 @@ resource "google_sql_database_instance" "eitan_db" {
       start_time = "03:00"
     }
   }
+
+  depends_on = [google_service_networking_connection.private_service_connection]
 
   lifecycle {
     prevent_destroy = true
