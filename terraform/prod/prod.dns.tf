@@ -36,5 +36,5 @@ resource "google_dns_record_set" "api_eitan_flash_com" {
 
   managed_zone = google_dns_managed_zone.eitan_flash_com.name
 
-  rrdatas = ["104.198.116.7"] // gke gateway
+  rrdatas = ["104.198.124.169"] // gke gateway
 }

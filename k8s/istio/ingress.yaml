@@ -1,0 +1,26 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ingress
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - gateway
+  http:
+    - match:
+        - uri:
+            prefix: /auth
+      route:
+        - destination:
+            host: account-service.account-service.svc.cluster.local
+            port:
+              number: 80
+    - match:
+        - uri:
+            prefix: /*
+      route:
+        - destination:
+            host: eitan-service.eitan-service.svc.cluster.local
+            port:
+              number: 80

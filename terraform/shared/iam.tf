@@ -76,3 +76,16 @@ resource "google_project_iam_member" "notification_service_datastore_user" {
   member = "serviceAccount:${module.notification_service.service_account_email}"
   role   = "roles/datastore.user"
 }
+
+module "cert_manager" {
+  source       = "../modules/microservice_service_account"
+  project      = var.project
+  env          = var.env
+  service_name = "cert-manager"
+  ksa_name     = "cert-manager"
+}
+
+resource "google_project_iam_member" "cert_manager_datastore_user" {
+  member = "serviceAccount:${module.cert_manager.service_account_email}"
+  role   = "roles/dns.admin"
+}
