@@ -1,6 +1,8 @@
 
 .PHONY: setup
 setup:
+	brew list golangci-lint &>/dev/null || brew install golangci-lint
+	brew list pubsub_cli &>/dev/null || (brew tap k-yomo/pubsub_cli && brew install pubsub_cli)
 	GO111MODULE=off go get -u github.com/cosmtrek/air
 	GO111MODULE=off go get -u github.com/mattn/goreman
 	go mod download
