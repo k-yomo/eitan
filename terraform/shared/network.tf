@@ -7,7 +7,7 @@ resource "google_compute_network" "eitan_vpc" {
 resource "google_compute_subnetwork" "eitan_vpc_main" {
   name          = "${google_compute_network.eitan_vpc.name}-main-subnet"
   network       = google_compute_network.eitan_vpc.self_link
-  region        = "asia-northeast1"
+  region        = local.default_region
   ip_cidr_range = local.main_subnet_cidr_range
 
   private_ip_google_access = true
@@ -36,4 +36,14 @@ resource "google_service_networking_connection" "private_service_connection" {
   network                 = google_compute_network.eitan_vpc.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_service.name]
+}
+
+resource "google_compute_firewall" "allow_gateway_inbound" {
+  name    = "allow-gateway-http"
+  network = google_compute_network.eitan_vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "443"] # gke gateway http and https
+  }
 }

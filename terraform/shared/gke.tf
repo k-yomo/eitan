@@ -11,7 +11,7 @@ resource "google_container_cluster" "eitan" {
   provider   = google-beta
   project    = var.project
   name       = local.gke.cluster_name
-  location   = "asia-northeast1"
+  location   = local.default_region
   network    = google_compute_network.eitan_vpc.self_link
   subnetwork = google_compute_subnetwork.eitan_vpc_main.self_link
 
@@ -44,7 +44,7 @@ resource "google_container_cluster" "eitan" {
 
 resource "google_container_node_pool" "primary_nodes" {
   name       = "gke-primary-node-pool-${var.env}"
-  location   = "asia-northeast1"
+  location   = local.default_region
   cluster    = google_container_cluster.eitan.name
   node_count = 1
 
@@ -79,7 +79,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
 resource "google_container_node_pool" "preemptible_nodes" {
   name       = "gke-preemptible-node-pool-${var.env}"
-  location   = "asia-northeast1"
+  location   = local.default_region
   cluster    = google_container_cluster.eitan.name
   node_count = var.gke_preemptible_node_count
 
