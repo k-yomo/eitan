@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/k-yomo/eitan/src/account_service/infra"
+	"github.com/k-yomo/eitan/src/account_service/internal/infra"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/pubsubevent"

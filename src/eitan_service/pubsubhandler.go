@@ -5,7 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/jmoiron/sqlx"
-	"github.com/k-yomo/eitan/src/eitan_service/infra"
+	"github.com/k-yomo/eitan/src/eitan_service/internal/infra"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/pkg/clock"
 	"github.com/k-yomo/eitan/src/pkg/tx"

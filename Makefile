@@ -24,8 +24,8 @@ run-dc:
 .PHONY: gen-model
 gen-model:
 	rm src/account_service/infra/*.xo.go src/eitan_service/infra/*.xo.go
-	xo mysql://root@localhost:13306/accountdb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/account_service/infra
-	xo mysql://root@localhost:13306/eitandb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/eitan_service/infra
+	xo mysql://root@localhost:13306/accountdb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/account_service/internal/infra
+	xo mysql://root@localhost:13306/eitandb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/eitan_service/internal/infra
 
 test-account:
 	go test ./src/account_service/... -v $(TESTARGS) -coverprofile=account_service.coverage.out
@@ -41,7 +41,7 @@ lint:
 
 .PHONY: gen-graphql
 gen-graphql:
-	cd src/eitan_service; go generate ./...
+	cd src/eitan_service; go run github.com/99designs/gqlgen
 	cd src/web_client; yarn codegen
 
 .PHONY: gen_proto

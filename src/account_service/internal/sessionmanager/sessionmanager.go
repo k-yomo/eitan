@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/sessions"
-	"github.com/k-yomo/eitan/src/account_service/config"
+	"github.com/k-yomo/eitan/src/account_service/internal/config"
 	"github.com/k-yomo/eitan/src/internal/session"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/pkg/errors"

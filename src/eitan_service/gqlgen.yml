@@ -4,7 +4,7 @@ schema:
 
 # Where should the generated server code go?
 exec:
-  filename: graph/generated/generated.go
+  filename: internal/graph/generated/generated.go
   package: gql
 
 # Uncomment to enable federation
@@ -14,13 +14,13 @@ exec:
 
 # Where should any generated models go?
 model:
-  filename: graph/model/models_gen.go
+  filename: internal/graph/model/models_gen.go
   package: model
 
 # Where should the resolver implementations go?
 resolver:
   layout: follow-schema
-  dir: graph
+  dir: internal/graph
   package: graph
 
 # Optional: turn on use `gqlgen:"fieldName"` tags in your models

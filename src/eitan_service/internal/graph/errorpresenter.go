@@ -3,8 +3,8 @@ package graph
 import (
 	"context"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/k-yomo/eitan/src/eitan_service/graph/model"
 	"github.com/k-yomo/eitan/src/eitan_service/internal/customerror"
+	"github.com/k-yomo/eitan/src/eitan_service/internal/graph/model"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/zap"

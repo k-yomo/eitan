@@ -14,7 +14,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/k-yomo/eitan/src/eitan_service/graph/model"
+	"github.com/k-yomo/eitan/src/eitan_service/internal/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -596,7 +596,7 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 	var arg0 model.Role
 	if tmp, ok := rawArgs["role"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-		arg0, err = ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, tmp)
+		arg0, err = ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -659,7 +659,7 @@ func (ec *executionContext) field_Mutation_updatePlayerId_args(ctx context.Conte
 	var arg0 model.UpdatePlayerIDInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdatePlayerIdInput2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUpdatePlayerIDInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdatePlayerIdInput2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐUpdatePlayerIDInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -985,7 +985,7 @@ func (ec *executionContext) _FourChoicesQuiz_quizType(ctx context.Context, field
 	}
 	res := resTmp.(model.QuizType)
 	fc.Result = res
-	return ec.marshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizType(ctx, field.Selections, res)
+	return ec.marshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FourChoicesQuiz_question(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuiz) (ret graphql.Marshaler) {
@@ -1055,7 +1055,7 @@ func (ec *executionContext) _FourChoicesQuiz_choices(ctx context.Context, field 
 	}
 	res := resTmp.([]*model.QuizChoice)
 	fc.Result = res
-	return ec.marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoiceᚄ(ctx, field.Selections, res)
+	return ec.marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizChoiceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FourChoicesQuizAnswer_quiz(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuizAnswer) (ret graphql.Marshaler) {
@@ -1090,7 +1090,7 @@ func (ec *executionContext) _FourChoicesQuizAnswer_quiz(ctx context.Context, fie
 	}
 	res := resTmp.(model.Quiz)
 	fc.Result = res
-	return ec.marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuiz(ctx, field.Selections, res)
+	return ec.marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuiz(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FourChoicesQuizAnswer_answeredPlayerID(ctx context.Context, field graphql.CollectedField, obj *model.FourChoicesQuizAnswer) (ret graphql.Marshaler) {
@@ -1192,7 +1192,7 @@ func (ec *executionContext) _Mutation_updatePlayerId(ctx context.Context, field 
 			return ec.resolvers.Mutation().UpdatePlayerID(rctx, args["input"].(model.UpdatePlayerIDInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1212,7 +1212,7 @@ func (ec *executionContext) _Mutation_updatePlayerId(ctx context.Context, field 
 		if data, ok := tmp.(*model.Player); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.Player`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/internal/graph/model.Player`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1226,7 +1226,7 @@ func (ec *executionContext) _Mutation_updatePlayerId(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Player)
 	fc.Result = res
-	return ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx, field.Selections, res)
+	return ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_cancelWaitingMatch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1251,7 +1251,7 @@ func (ec *executionContext) _Mutation_cancelWaitingMatch(ctx context.Context, fi
 			return ec.resolvers.Mutation().CancelWaitingMatch(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1317,7 +1317,7 @@ func (ec *executionContext) _Mutation_updateCurrentPlayerQuizRoomStatus(ctx cont
 			return ec.resolvers.Mutation().UpdateCurrentPlayerQuizRoomStatus(rctx, args["roomId"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1380,7 +1380,7 @@ func (ec *executionContext) _Mutation_createAnswer(ctx context.Context, field gr
 			return ec.resolvers.Mutation().CreateAnswer(rctx, args["roomId"].(string), args["quizId"].(string), args["answer"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1516,7 +1516,7 @@ func (ec *executionContext) _Player_userProfile(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.UserProfile)
 	fc.Result = res
-	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUserProfile(ctx, field.Selections, res)
+	return ec.marshalNUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1555,7 +1555,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(model.Node)
 	fc.Result = res
-	return ec.marshalONode2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
+	return ec.marshalONode2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_nodes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1597,7 +1597,7 @@ func (ec *executionContext) _Query_nodes(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]model.Node)
 	fc.Result = res
-	return ec.marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
+	return ec.marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_currentUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1622,7 +1622,7 @@ func (ec *executionContext) _Query_currentUserProfile(ctx context.Context, field
 			return ec.resolvers.Query().CurrentUserProfile(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1642,7 +1642,7 @@ func (ec *executionContext) _Query_currentUserProfile(ctx context.Context, field
 		if data, ok := tmp.(*model.CurrentUserProfile); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.CurrentUserProfile`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/internal/graph/model.CurrentUserProfile`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1656,7 +1656,7 @@ func (ec *executionContext) _Query_currentUserProfile(ctx context.Context, field
 	}
 	res := resTmp.(*model.CurrentUserProfile)
 	fc.Result = res
-	return ec.marshalNCurrentUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐCurrentUserProfile(ctx, field.Selections, res)
+	return ec.marshalNCurrentUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐCurrentUserProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_currentPlayer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1681,7 +1681,7 @@ func (ec *executionContext) _Query_currentPlayer(ctx context.Context, field grap
 			return ec.resolvers.Query().CurrentPlayer(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1701,7 +1701,7 @@ func (ec *executionContext) _Query_currentPlayer(ctx context.Context, field grap
 		if data, ok := tmp.(*model.Player); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/graph/model.Player`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/k-yomo/eitan/src/eitan_service/internal/graph/model.Player`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1715,7 +1715,7 @@ func (ec *executionContext) _Query_currentPlayer(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Player)
 	fc.Result = res
-	return ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx, field.Selections, res)
+	return ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1926,7 +1926,7 @@ func (ec *executionContext) _QuizRoom_players(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Player)
 	fc.Result = res
-	return ec.marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayerᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayerᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Subscription_randomMatchRoomDecided(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
@@ -1951,7 +1951,7 @@ func (ec *executionContext) _Subscription_randomMatchRoomDecided(ctx context.Con
 			return ec.resolvers.Subscription().RandomMatchRoomDecided(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -1971,7 +1971,7 @@ func (ec *executionContext) _Subscription_randomMatchRoomDecided(ctx context.Con
 		if data, ok := tmp.(<-chan *model.QuizRoom); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan *github.com/k-yomo/eitan/src/eitan_service/graph/model.QuizRoom`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan *github.com/k-yomo/eitan/src/eitan_service/internal/graph/model.QuizRoom`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1992,7 +1992,7 @@ func (ec *executionContext) _Subscription_randomMatchRoomDecided(ctx context.Con
 			w.Write([]byte{'{'})
 			graphql.MarshalString(field.Alias).MarshalGQL(w)
 			w.Write([]byte{':'})
-			ec.marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizRoom(ctx, field.Selections, res).MarshalGQL(w)
+			ec.marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizRoom(ctx, field.Selections, res).MarshalGQL(w)
 			w.Write([]byte{'}'})
 		})
 	}
@@ -2027,7 +2027,7 @@ func (ec *executionContext) _Subscription_quizPosted(ctx context.Context, field 
 			return ec.resolvers.Subscription().QuizPosted(rctx, args["roomId"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -2047,7 +2047,7 @@ func (ec *executionContext) _Subscription_quizPosted(ctx context.Context, field 
 		if data, ok := tmp.(<-chan model.Quiz); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan github.com/k-yomo/eitan/src/eitan_service/graph/model.Quiz`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan github.com/k-yomo/eitan/src/eitan_service/internal/graph/model.Quiz`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2068,7 +2068,7 @@ func (ec *executionContext) _Subscription_quizPosted(ctx context.Context, field 
 			w.Write([]byte{'{'})
 			graphql.MarshalString(field.Alias).MarshalGQL(w)
 			w.Write([]byte{':'})
-			ec.marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuiz(ctx, field.Selections, res).MarshalGQL(w)
+			ec.marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuiz(ctx, field.Selections, res).MarshalGQL(w)
 			w.Write([]byte{'}'})
 		})
 	}
@@ -2103,7 +2103,7 @@ func (ec *executionContext) _Subscription_quizAnswered(ctx context.Context, fiel
 			return ec.resolvers.Subscription().QuizAnswered(rctx, args["roomId"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx, "USER")
+			role, err := ec.unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx, "USER")
 			if err != nil {
 				return nil, err
 			}
@@ -2123,7 +2123,7 @@ func (ec *executionContext) _Subscription_quizAnswered(ctx context.Context, fiel
 		if data, ok := tmp.(<-chan model.QuizAnswer); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan github.com/k-yomo/eitan/src/eitan_service/graph/model.QuizAnswer`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be <-chan github.com/k-yomo/eitan/src/eitan_service/internal/graph/model.QuizAnswer`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2144,7 +2144,7 @@ func (ec *executionContext) _Subscription_quizAnswered(ctx context.Context, fiel
 			w.Write([]byte{'{'})
 			graphql.MarshalString(field.Alias).MarshalGQL(w)
 			w.Write([]byte{':'})
-			ec.marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizAnswer(ctx, field.Selections, res).MarshalGQL(w)
+			ec.marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizAnswer(ctx, field.Selections, res).MarshalGQL(w)
 			w.Write([]byte{'}'})
 		})
 	}
@@ -4105,11 +4105,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCurrentUserProfile2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐCurrentUserProfile(ctx context.Context, sel ast.SelectionSet, v model.CurrentUserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNCurrentUserProfile2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐCurrentUserProfile(ctx context.Context, sel ast.SelectionSet, v model.CurrentUserProfile) graphql.Marshaler {
 	return ec._CurrentUserProfile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCurrentUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐCurrentUserProfile(ctx context.Context, sel ast.SelectionSet, v *model.CurrentUserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNCurrentUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐCurrentUserProfile(ctx context.Context, sel ast.SelectionSet, v *model.CurrentUserProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4164,7 +4164,7 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
-func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v []model.Node) graphql.Marshaler {
+func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v []model.Node) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4188,7 +4188,7 @@ func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalONode2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐNode(ctx, sel, v[i])
+			ret[i] = ec.marshalONode2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐNode(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4201,11 +4201,11 @@ func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋkᚑyomoᚋeitanᚋsr
 	return ret
 }
 
-func (ec *executionContext) marshalNPlayer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx context.Context, sel ast.SelectionSet, v model.Player) graphql.Marshaler {
+func (ec *executionContext) marshalNPlayer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayer(ctx context.Context, sel ast.SelectionSet, v model.Player) graphql.Marshaler {
 	return ec._Player(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Player) graphql.Marshaler {
+func (ec *executionContext) marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Player) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4229,7 +4229,7 @@ func (ec *executionContext) marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitan
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx, sel, v[i])
+			ret[i] = ec.marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayer(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4242,7 +4242,7 @@ func (ec *executionContext) marshalNPlayer2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitan
 	return ret
 }
 
-func (ec *executionContext) marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐPlayer(ctx context.Context, sel ast.SelectionSet, v *model.Player) graphql.Marshaler {
+func (ec *executionContext) marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐPlayer(ctx context.Context, sel ast.SelectionSet, v *model.Player) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4252,7 +4252,7 @@ func (ec *executionContext) marshalNPlayer2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋ
 	return ec._Player(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuiz(ctx context.Context, sel ast.SelectionSet, v model.Quiz) graphql.Marshaler {
+func (ec *executionContext) marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuiz(ctx context.Context, sel ast.SelectionSet, v model.Quiz) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4262,7 +4262,7 @@ func (ec *executionContext) marshalNQuiz2githubᚗcomᚋkᚑyomoᚋeitanᚋsrc�
 	return ec._Quiz(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizAnswer(ctx context.Context, sel ast.SelectionSet, v model.QuizAnswer) graphql.Marshaler {
+func (ec *executionContext) marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizAnswer(ctx context.Context, sel ast.SelectionSet, v model.QuizAnswer) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4272,7 +4272,7 @@ func (ec *executionContext) marshalNQuizAnswer2githubᚗcomᚋkᚑyomoᚋeitan�
 	return ec._QuizAnswer(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.QuizChoice) graphql.Marshaler {
+func (ec *executionContext) marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizChoiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.QuizChoice) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4296,7 +4296,7 @@ func (ec *executionContext) marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋe
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoice(ctx, sel, v[i])
+			ret[i] = ec.marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizChoice(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4309,7 +4309,7 @@ func (ec *executionContext) marshalNQuizChoice2ᚕᚖgithubᚗcomᚋkᚑyomoᚋe
 	return ret
 }
 
-func (ec *executionContext) marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizChoice(ctx context.Context, sel ast.SelectionSet, v *model.QuizChoice) graphql.Marshaler {
+func (ec *executionContext) marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizChoice(ctx context.Context, sel ast.SelectionSet, v *model.QuizChoice) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4319,11 +4319,11 @@ func (ec *executionContext) marshalNQuizChoice2ᚖgithubᚗcomᚋkᚑyomoᚋeita
 	return ec._QuizChoice(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNQuizRoom2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizRoom(ctx context.Context, sel ast.SelectionSet, v model.QuizRoom) graphql.Marshaler {
+func (ec *executionContext) marshalNQuizRoom2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizRoom(ctx context.Context, sel ast.SelectionSet, v model.QuizRoom) graphql.Marshaler {
 	return ec._QuizRoom(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizRoom(ctx context.Context, sel ast.SelectionSet, v *model.QuizRoom) graphql.Marshaler {
+func (ec *executionContext) marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizRoom(ctx context.Context, sel ast.SelectionSet, v *model.QuizRoom) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4333,23 +4333,23 @@ func (ec *executionContext) marshalNQuizRoom2ᚖgithubᚗcomᚋkᚑyomoᚋeitan�
 	return ec._QuizRoom(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizType(ctx context.Context, v interface{}) (model.QuizType, error) {
+func (ec *executionContext) unmarshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizType(ctx context.Context, v interface{}) (model.QuizType, error) {
 	var res model.QuizType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐQuizType(ctx context.Context, sel ast.SelectionSet, v model.QuizType) graphql.Marshaler {
+func (ec *executionContext) marshalNQuizType2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐQuizType(ctx context.Context, sel ast.SelectionSet, v model.QuizType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
+func (ec *executionContext) unmarshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx context.Context, v interface{}) (model.Role, error) {
 	var res model.Role
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
+func (ec *executionContext) marshalNRole2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v model.Role) graphql.Marshaler {
 	return v
 }
 
@@ -4368,16 +4368,16 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpdatePlayerIdInput2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUpdatePlayerIDInput(ctx context.Context, v interface{}) (model.UpdatePlayerIDInput, error) {
+func (ec *executionContext) unmarshalNUpdatePlayerIdInput2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐUpdatePlayerIDInput(ctx context.Context, v interface{}) (model.UpdatePlayerIDInput, error) {
 	res, err := ec.unmarshalInputUpdatePlayerIdInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUserProfile2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v model.UserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNUserProfile2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v model.UserProfile) graphql.Marshaler {
 	return ec._UserProfile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *model.UserProfile) graphql.Marshaler {
+func (ec *executionContext) marshalNUserProfile2ᚖgithubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *model.UserProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4640,7 +4640,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalONode2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v model.Node) graphql.Marshaler {
+func (ec *executionContext) marshalONode2githubᚗcomᚋkᚑyomoᚋeitanᚋsrcᚋeitan_serviceᚋinternalᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v model.Node) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -3,8 +3,8 @@ package auth
 import (
 	"context"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/k-yomo/eitan/src/eitan_service/graph/model"
 	"github.com/k-yomo/eitan/src/eitan_service/internal/customerror"
+	"github.com/k-yomo/eitan/src/eitan_service/internal/graph/model"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/session"
 	"github.com/k-yomo/eitan/src/pkg/logging"

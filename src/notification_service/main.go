@@ -5,7 +5,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/k-yomo/eitan/src/notification_service/config"
+	"github.com/k-yomo/eitan/src/notification_service/internal/config"
 	"github.com/k-yomo/eitan/src/notification_service/internal/email"
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/k-yomo/pm"

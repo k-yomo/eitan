@@ -1,8 +1,8 @@
 package graph
 
 import (
-	"github.com/k-yomo/eitan/src/eitan_service/graph/model"
-	"github.com/k-yomo/eitan/src/eitan_service/infra"
+	"github.com/k-yomo/eitan/src/eitan_service/internal/graph/model"
+	"github.com/k-yomo/eitan/src/eitan_service/internal/infra"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 )
 

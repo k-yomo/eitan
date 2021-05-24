@@ -12,7 +12,7 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/jmoiron/sqlx"
-	"github.com/k-yomo/eitan/src/account_service/config"
+	"github.com/k-yomo/eitan/src/account_service/internal/config"
 	"github.com/k-yomo/eitan/src/account_service/internal/sessionmanager"
 	"github.com/k-yomo/eitan/src/internal/pb/eitan"
 	"github.com/k-yomo/eitan/src/internal/sharedctx"
