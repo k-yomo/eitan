@@ -63,7 +63,7 @@ spec:
                   name: account-service-secret
                   key: google_auth_secret
             - name: REDIS_URL
-              value: "10.1.0.11:6379"
+              value: "eitan-redis.eitan-prod.internal:6379"
             - name: DB_NAME
               value: "accountdb"
             - name: DB_USER
@@ -74,7 +74,7 @@ spec:
                   name: account-service-secret
                   key: db_password
             - name: DB_URL
-              value: "10.1.2.5:3306"
+              value: "eitan-db.eitan-prod.internal:3306"
 
           resources:
             requests:

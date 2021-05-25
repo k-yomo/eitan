@@ -1,0 +1,1 @@
+../shared/private_dns.tf
