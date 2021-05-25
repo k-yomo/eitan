@@ -1,9 +1,9 @@
-name: PubSub Publisher Workflow
+name: PubSub Publisher Job Workflow
 on:
   push:
     paths:
-      - ".github/workflows/pubsub_publisher.yml"
-      - "src/pubsub_publisher/**"
+      - ".github/workflows/pubsub_publisher_job.yml"
+      - "src/pubsub_publisher_job/**"
       - "src/internal/**"
       - "src/pkg/**"
 
@@ -40,10 +40,10 @@ jobs:
         uses: golangci/golangci-lint-action@v2.5.2
         with:
           version: v1.33
-          working-directory: src/pubsub_publisher
+          working-directory: src/pubsub_publisher_job
 
       - name: Test
-        run: make test-pubsub-publisher
+        run: make test-pubsub-publisher-job
 
   push-image:
     name: Push Image
@@ -63,6 +63,6 @@ jobs:
         if: contains(github.ref, 'tags/v')
         run: |
           gcloud --quiet auth configure-docker
-          docker build -t pubsub-publisher -f pubsub_publisher.Dockerfile .
-          docker tag pubsub-publisher asia.gcr.io/eitan-prod/pubsub-publisher:${GITHUB_REF#refs/*/}
-          docker push asia.gcr.io/eitan-prod/pubsub-publisher:${GITHUB_REF#refs/*/}
+          docker build -t pubsub-publisher-job -f pubsub_publisher.Dockerfile .
+          docker tag pubsub-publisher-job asia.gcr.io/eitan-prod/pubsub-publisher-job:${GITHUB_REF#refs/*/}
+          docker push asia.gcr.io/eitan-prod/pubsub-publisher-job:${GITHUB_REF#refs/*/}

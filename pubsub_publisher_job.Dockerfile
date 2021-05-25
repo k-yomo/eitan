@@ -9,11 +9,11 @@ RUN apk --no-cache add make ca-certificates tzdata
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY src/pubsub_publisher src/pubsub_publisher
+COPY src/pubsub_publisher_job src/pubsub_publisher_job
 COPY src/internal src/internal
 COPY src/pkg src/pkg
 
-RUN CGO_ENABLED=0 go build -o bin/server -ldflags "-w -s" ./src/pubsub_publisher
+RUN CGO_ENABLED=0 go build -o bin/server -ldflags "-w -s" ./src/pubsub_publisher_job
 
 # exec
 FROM scratch

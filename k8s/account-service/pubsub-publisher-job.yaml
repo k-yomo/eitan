@@ -1,0 +1,5 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pubsub-publisher-job
+  namespace: account-service
