@@ -32,6 +32,9 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -102,10 +105,10 @@ func main() {
 
 	gqlConfig := gql.Config{Resolvers: graph.NewResolver(db, tx.NewManager(db), accountServiceClient, redisClient)}
 	gqlConfig.Directives.HasRole = auth.NewHasRole(accountServiceClient)
-	srv := handler.NewDefaultServer(gql.NewExecutableSchema(gqlConfig))
-	srv.SetErrorPresenter(graph.NewErrorPresenter())
-	srv.Use(gqlopentelemetry.Tracer{})
-	srv.Use(logging.GraphQLResponseInterceptor{})
+	gqlServer := handler.NewDefaultServer(gql.NewExecutableSchema(gqlConfig))
+	gqlServer.SetErrorPresenter(graph.NewErrorPresenter())
+	gqlServer.Use(gqlopentelemetry.Tracer{})
+	gqlServer.Use(logging.GraphQLResponseInterceptor{})
 
 	r := newRouter(appConfig, logger)
 	// healthcheck
@@ -114,17 +117,33 @@ func main() {
 		_, _ = w.Write([]byte(`{"status":"200"}`))
 	}).Methods("GET")
 
-	r.Handle("/query", srv)
+	r.Handle("/query", gqlServer)
 	if appConfig.Env == appenv.Local {
 		r.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	}
 
-	pubsubSubscriber.Run(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	pubsubSubscriber.Run(ctx)
 	defer pubsubSubscriber.Close()
 	log.Printf("pubsub subscriber started running")
 
+	httpServer := &http.Server{Addr: fmt.Sprintf(":%d", appConfig.Port), Handler: r}
+	go func() {
+		logger.Fatal(httpServer.ListenAndServe().Error())
+	}()
+
 	log.Printf("server listening on port: %d", appConfig.Port)
-	logger.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Port), r).Error())
+	quitChan := make(chan os.Signal, 1)
+	signal.Notify(quitChan, syscall.SIGTERM, os.Interrupt)
+	logger.Info("Signal received, shutting down gracefully...", zap.Any("signal", <-quitChan))
+
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	if err := httpServer.Shutdown(ctx); err != nil {
+		logger.Error("graceful shutdown failed", zap.Error(err))
+	}
 }
 
 func newAccountServiceClient(ctx context.Context, accountServiceGRPCURL string, isDeployedEnv bool) (client eitan.AccountServiceClient, closeConn func()) {

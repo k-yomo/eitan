@@ -25,6 +25,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.6
 	github.com/markbates/goth v1.67.1
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/oklog/run v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rbcervilla/redisstore/v8 v8.0.0
 	github.com/sendgrid/rest v2.6.3+incompatible // indirect

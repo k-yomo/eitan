@@ -9,7 +9,7 @@ import (
 
 type AppConfig struct {
 	Env                 appenv.Env `default:"local" envconfig:"APP_ENV"`
-	RestPort            int        `default:"4000" envconfig:"REST_PORT"`
+	HTTPPort            int        `default:"4000" envconfig:"HTTP_PORT"`
 	GRPCPort            int        `default:"4040" envconfig:"GRPC_PORT"`
 	AppRootURL          string     `default:"http://account.local.eitan-flash.com:4000" envconfig:"APP_ROOT_URL"`
 	WebAppURL           string     `default:"http://local.eitan-flash.com:3000" envconfig:"WEB_APP_URL"`

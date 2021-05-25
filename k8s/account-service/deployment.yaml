@@ -36,7 +36,7 @@ spec:
             periodSeconds: 120
             failureThreshold: 3
           env:
-            - name: REST_PORT
+            - name: HTTP_PORT
               value: "8000"
             - name: GRPC_PORT
               value: "8080"
