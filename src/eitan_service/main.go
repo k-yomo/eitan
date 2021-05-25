@@ -3,7 +3,6 @@ package main
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -31,7 +30,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"log"
 	"net/http"
 	"time"
@@ -140,18 +138,15 @@ func newAccountServiceClient(ctx context.Context, accountServiceGRPCURL string, 
 }
 
 func grpcOptions(isDeployedEnv bool) []grpc.DialOption {
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithUnaryInterceptor(sharedctx.NewUnaryClientCurrentUserInterceptor(auth.GetUserID)))
+	interceptors := []grpc.UnaryClientInterceptor{
+		sharedctx.NewUnaryClientCurrentUserInterceptor(auth.GetUserID),
+	}
 	if isDeployedEnv {
-		creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-		gapsTraceInterceptor := otelgrpc.UnaryClientInterceptor()
-		opts = append(
-			opts,
-			grpc.WithUnaryInterceptor(gapsTraceInterceptor),
-			grpc.WithTransportCredentials(creds),
-		)
-	} else {
-		opts = append(opts, grpc.WithInsecure())
+		interceptors = append(interceptors, otelgrpc.UnaryClientInterceptor())
+	}
+	opts := []grpc.DialOption{
+		grpc.WithChainUnaryInterceptor(interceptors...),
+		grpc.WithInsecure(),
 	}
 	return opts
 }

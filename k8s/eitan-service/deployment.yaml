@@ -16,6 +16,7 @@ spec:
       containers:
         - name: server
           image: asia.gcr.io/eitan-prod/eitan-service:v0.0.1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           readinessProbe:
@@ -23,6 +24,9 @@ spec:
             httpGet:
               path: "/healthz"
               port: 8000
+              httpHeaders:
+                - name: X-Requested-By
+                  value: health-check
           env:
             - name: PORT
               value: "8000"
@@ -36,7 +40,7 @@ spec:
               value: "https://eitan-flash.com"
 
             - name: ACCOUNT_SERVICE_GRPC_URL
-              value: "account-service.eitan-service.svc.cluster.local"
+              value: "account-service.account-service.svc.cluster.local:8080"
 
             - name: REDIS_URL
               value: "10.1.0.11:6379"
@@ -44,7 +48,6 @@ spec:
               value: "eitandb"
             - name: DB_USER
               value: "eitan-service"
-            # TODO: Don't hardcode and store in secure place
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:

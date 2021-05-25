@@ -18,7 +18,7 @@ spec:
               number: 80
     - match:
         - uri:
-            prefix: /*
+            prefix: /
       route:
         - destination:
             host: eitan-service.eitan-service.svc.cluster.local

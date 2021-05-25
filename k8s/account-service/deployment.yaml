@@ -51,13 +51,12 @@ spec:
             - name: ALLOWED_ORIGINS
               value: "https://eitan-flash.com"
             - name: SESSION_COOKIE_DOMAIN
-              value: "https://eitan-flash.com"
+              value: "eitan-flash.com"
             - name: GOOGLE_AUTH_CLIENT_KEY
               valueFrom:
                 secretKeyRef:
                   name: account-service-secret
                   key: google_auth_client_key
-            # TODO: Don't hardcode and store in secure place
             - name: GOOGLE_AUTH_SECRET
               valueFrom:
                 secretKeyRef:
@@ -69,7 +68,6 @@ spec:
               value: "accountdb"
             - name: DB_USER
               value: "account-service"
-            # TODO: Don't hardcode and store in secure place
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -99,3 +97,6 @@ spec:
     - name: http
       port: 80
       targetPort: 8000
+    - name: grpc
+      port: 8080
+      targetPort: 8080
