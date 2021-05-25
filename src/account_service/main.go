@@ -21,14 +21,19 @@ import (
 	"github.com/k-yomo/eitan/src/pkg/logging"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/google"
+	"github.com/oklog/run"
+	"github.com/pkg/errors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -81,7 +86,7 @@ func main() {
 	r.HandleFunc("/auth/{provider}", authHandler.HandleOAuth).Methods("GET")
 	r.HandleFunc("/auth/{provider}/callback", authHandler.HandleOAuthCallback).Methods("GET")
 
-	s := grpc.NewServer(
+	grpcServer := grpc.NewServer(
 		grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
 			otelgrpc.UnaryServerInterceptor(),
@@ -91,24 +96,64 @@ func main() {
 		),
 	)
 
-	eitan.RegisterAccountServiceServer(s, NewAccountServiceServer(db, sessionManager))
-	grpc_health_v1.RegisterHealthServer(s, healthserver.NewHealthServer())
-	reflection.Register(s)
+	eitan.RegisterAccountServiceServer(grpcServer, NewAccountServiceServer(db, sessionManager))
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthserver.NewHealthServer())
+	reflection.Register(grpcServer)
 
-	eg := errgroup.Group{}
-	eg.Go(func() error {
-		fmt.Println("Rest Server listening on port:", appConfig.RestPort)
-		return http.ListenAndServe(fmt.Sprintf(":%d", appConfig.RestPort), r)
-	})
-	eg.Go(func() error {
-		fmt.Println("GRPC Server listening on port:", appConfig.GRPCPort)
-		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", appConfig.GRPCPort))
-		if err != nil {
-			return err
-		}
-		return s.Serve(lis)
-	})
-	logger.Fatal(eg.Wait().Error())
+	httpServer := &http.Server{Addr: fmt.Sprintf(":%d", appConfig.HTTPPort), Handler: r}
+
+	var g run.Group
+	quitChan := make(chan os.Signal, 1)
+	signal.Notify(quitChan, syscall.SIGTERM, os.Interrupt)
+	closeChan := make(chan struct{})
+
+	g.Add(
+		func() error {
+			select {
+			case sig := <-quitChan:
+				logger.Info("Signal received, shutting down gracefully...", zap.Any("signal", sig))
+			case <-closeChan:
+			}
+			return nil
+		},
+		func(err error) {
+			close(closeChan)
+		},
+	)
+
+	g.Add(
+		func() error {
+			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+				return errors.Wrap(err, "serve rest server")
+			}
+			return nil
+		},
+		func(err error) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if err := httpServer.Shutdown(ctx); err != nil {
+				logger.Error("shutdown rest server failed", zap.Error(err))
+			}
+		},
+	)
+
+	g.Add(
+		func() error {
+			lis, err := net.Listen("tcp", fmt.Sprintf(":%d", appConfig.GRPCPort))
+			if err != nil {
+				return errors.Wrap(err, "listen to grpc server")
+			}
+			if err := grpcServer.Serve(lis); err != nil {
+				return errors.Wrap(err, "serve grpc server")
+			}
+			return nil
+		},
+		func(err error) {
+			grpcServer.GracefulStop()
+		},
+	)
+
+	logger.Fatal(g.Run().Error())
 }
 
 func newRouter(appConfig *config.AppConfig, logger *zap.Logger) *mux.Router {
