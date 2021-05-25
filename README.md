@@ -1,5 +1,8 @@
 # eitan
 
+## Architecture
+![architecture](./docs/architecture.png)
+
 ## Setup
 1. Install tools
 ```sh
