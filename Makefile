@@ -38,6 +38,9 @@ test-eitan:
 test-notification:
 	go test ./src/notification_service/... -v $(TESTARGS) -coverprofile=notification_service.coverage.out
 
+test-pubsub-publisher-job:
+	go test ./src/pubsub_publisher_job/... -v $(TESTARGS) -coverprofile=pubsub_publisher_job.coverage.out
+
 lint:
 	@golangci-lint run
 

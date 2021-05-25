@@ -1,0 +1,35 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: pubsub-publisher-job
+  namespace: account-service
+spec:
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        spec:
+          serviceAccountName: account-service-sa
+          containers:
+            - name: pubsub-publisher-job
+              image: asia.gcr.io/eitan-prod/pubsub-publisher-job:v0.0.1
+              env:
+                - name: GCP_PROJECT_ID
+                  value: "eitan-prod"
+                - name: DB_NAME
+                  value: "accountdb"
+                - name: DB_USER
+                  value: "account-service"
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: account-service-secret
+                      key: db_password
+                - name: DB_URL
+                  value: "10.1.2.5:3306"
+          restartPolicy: Never
