@@ -11,6 +11,9 @@ resource "google_service_account" "ksa" {
 resource "google_project_iam_member" "ksa_default" {
   for_each = toset([
     "roles/logging.logWriter",
+    "roles/errorreporting.writer",
+    "roles/cloudprofiler.agent",
+    "roles/cloudtrace.agent",
     "roles/monitoring.metricWriter",
   ])
   member = "serviceAccount:${google_service_account.ksa.email}"
