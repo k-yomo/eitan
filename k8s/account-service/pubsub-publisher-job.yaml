@@ -31,5 +31,5 @@ spec:
                       name: account-service-secret
                       key: db_password
                 - name: DB_URL
-                  value: "10.1.2.5:3306"
+                  value: "eitan-db.eitan-prod.internal:3306"
           restartPolicy: Never
