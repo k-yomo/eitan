@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: APP_ENV
-              value: "local" # TODO: Change APP_ENV and SEND_GRID_API_KEY once sendgrid registration is done
+              value: "prod"
             - name: GCP_PROJECT_ID
               value: "eitan-prod"
             - name: SEND_GRID_API_KEY
