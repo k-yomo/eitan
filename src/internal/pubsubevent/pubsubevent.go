@@ -1,4 +1,4 @@
-package main
+package pubsubevent
 
 import (
 	"database/sql"

@@ -33,7 +33,7 @@ func (p *PubSubHandler) HandleUserRegisteredEvent(ctx context.Context, m *pubsub
 	}
 
 	err := p.txManager.RunInTx(ctx, func(ctx context.Context) error {
-		_, err := infra.PlayerByUserID(ctx, p.db, userRegisteredEvent.UserId)
+		_, err := infra.GetPlayerByUserID(ctx, p.db, userRegisteredEvent.UserId)
 		if err == sql.ErrNoRows {
 			now := clock.Now()
 			player := &infra.Player{

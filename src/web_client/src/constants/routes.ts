@@ -1,4 +1,5 @@
 export const routes = {
+  home: () => '/',
   login: () => '/login',
   loginWithOriginalPath: (originalPath: string) =>
     `/login?originalUrl=${originalPath}`,

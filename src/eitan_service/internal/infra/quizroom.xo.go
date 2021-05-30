@@ -66,7 +66,9 @@ func GetQuizRoom(ctx context.Context, db Queryer, key string) (*QuizRoom, error)
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetQuizRoom", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetQuizRoom", sqlstr, key)
+	defer closeSpan()
+
 	qr := QuizRoom{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&qr.ID, &qr.CreatedAt, &qr.UpdatedAt)
 	if err != nil {
@@ -88,7 +90,8 @@ func GetQuizRooms(ctx context.Context, db Queryer, keys []string) ([]*QuizRoom, 
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetQuizRooms", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetQuizRooms", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -113,6 +116,28 @@ func GetQuizRooms(ctx context.Context, db Queryer, keys []string) ([]*QuizRoom, 
 	}
 
 	return res, nil
+}
+
+func QueryQuizRoom(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*QuizRoom, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryQuizRoom", sqlstr, args)
+	defer closeSpan()
+
+	var dest QuizRoom
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryQuizRooms(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*QuizRoom, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryQuizRooms", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*QuizRoom
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the QuizRoom has been deleted from the database.
@@ -251,9 +276,9 @@ func (qr *QuizRoom) InsertIfNotExist(ctx context.Context, db Executor) error {
 	return nil
 }
 
-// QuizRoomByID retrieves a row from 'quiz_rooms' as a QuizRoom.
+// GetQuizRoomByID retrieves a row from 'quiz_rooms' as a QuizRoom.
 // Generated from index 'quiz_rooms_id_pkey'.
-func QuizRoomByID(ctx context.Context, db Queryer, id string) (*QuizRoom, error) {
+func GetQuizRoomByID(ctx context.Context, db Queryer, id string) (*QuizRoom, error) {
 	var err error
 
 	// sql query

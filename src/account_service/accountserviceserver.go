@@ -34,7 +34,7 @@ func (a *AccountServiceServer) Authenticate(ctx context.Context, req *eitan.Auth
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	userProfile, err := infra.UserProfileByUserID(ctx, a.db, userID)
+	userProfile, err := infra.GetUserProfileByUserID(ctx, a.db, userID)
 	if err == sql.ErrNoRows {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("userProfile with id: %s not found", userID))
 	}
@@ -50,7 +50,7 @@ func (a *AccountServiceServer) GetCurrentUserProfile(ctx context.Context, _ *eit
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
 	}
-	userProfile, err := infra.UserProfileByUserID(ctx, a.db, userID)
+	userProfile, err := infra.GetUserProfileByUserID(ctx, a.db, userID)
 	if err == sql.ErrNoRows {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("userProfile with id: '%s' not found", userID))
 	}
@@ -62,7 +62,7 @@ func (a *AccountServiceServer) GetCurrentUserProfile(ctx context.Context, _ *eit
 }
 
 func (a *AccountServiceServer) GetUserProfile(ctx context.Context, req *eitan.GetUserProfileRequest) (*eitan.GetUserProfileResponse, error) {
-	userProfile, err := infra.UserProfileByUserID(ctx, a.db, req.UserId)
+	userProfile, err := infra.GetUserProfileByUserID(ctx, a.db, req.UserId)
 	if err == sql.ErrNoRows {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("userProfile with id: '%s' not found", req.UserId))
 	}

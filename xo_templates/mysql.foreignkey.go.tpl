@@ -3,6 +3,6 @@
 //
 // Generated from foreign key '{{ .ForeignKey.ForeignKeyName }}'.
 func ({{ $short }} *{{ .Type.Name }}) {{ .Name }}(ctx context.Context, db Executor) (*{{ .RefType.Name }}, error) {
-	return {{ .RefType.Name }}By{{ .RefField.Name }}(ctx, db, {{ convext $short .Field .RefField }})
+	return Get{{ .RefType.Name }}By{{ .RefField.Name }}(ctx, db, {{ convext $short .Field .RefField }})
 }
 

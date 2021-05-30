@@ -66,7 +66,9 @@ func GetUser(ctx context.Context, db Queryer, key string) (*User, error) {
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetUser", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetUser", sqlstr, key)
+	defer closeSpan()
+
 	u := User{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&u.ID, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
@@ -88,7 +90,8 @@ func GetUsers(ctx context.Context, db Queryer, keys []string) ([]*User, error) {
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetUsers", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetUsers", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -113,6 +116,28 @@ func GetUsers(ctx context.Context, db Queryer, keys []string) ([]*User, error) {
 	}
 
 	return res, nil
+}
+
+func QueryUser(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*User, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryUser", sqlstr, args)
+	defer closeSpan()
+
+	var dest User
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryUsers(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*User, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryUsers", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*User
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the User has been deleted from the database.
@@ -251,9 +276,9 @@ func (u *User) InsertIfNotExist(ctx context.Context, db Executor) error {
 	return nil
 }
 
-// UserByID retrieves a row from 'users' as a User.
+// GetUserByID retrieves a row from 'users' as a User.
 // Generated from index 'users_id_pkey'.
-func UserByID(ctx context.Context, db Queryer, id string) (*User, error) {
+func GetUserByID(ctx context.Context, db Queryer, id string) (*User, error) {
 	var err error
 
 	// sql query

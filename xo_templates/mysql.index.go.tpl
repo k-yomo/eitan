@@ -1,8 +1,8 @@
 {{- $short := (shortname .Type.Name "err" "sqlstr" "db" "q" "res" "XOLog" .Fields) -}}
 {{- $table := (.Type.Table.TableName) -}}
-// {{ .FuncName }} retrieves a row from '{{ $table }}' as a {{ .Type.Name }}.
+// Get{{ .FuncName }} retrieves a row from '{{ $table }}' as a {{ .Type.Name }}.
 // Generated from index '{{ .Index.IndexName }}'.
-func {{ .FuncName }}(ctx context.Context, db Queryer{{ goparamlist .Fields true true }}) ({{ if not .Index.IsUnique }}[]{{ end }}*{{ .Type.Name }}, error) {
+func Get{{ .FuncName }}(ctx context.Context, db Queryer{{ goparamlist .Fields true true }}) ({{ if not .Index.IsUnique }}[]{{ end }}*{{ .Type.Name }}, error) {
 	var err error
 
 	// sql query

@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-const CookieSessionKey = "sid"
+const CookieSessionKey = "eitansid"
 
 type sessionCtxKey struct{}
 

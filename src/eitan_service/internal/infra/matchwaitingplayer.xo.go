@@ -65,7 +65,9 @@ func GetMatchWaitingPlayer(ctx context.Context, db Queryer, key string) (*MatchW
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetMatchWaitingPlayer", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetMatchWaitingPlayer", sqlstr, key)
+	defer closeSpan()
+
 	mwp := MatchWaitingPlayer{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&mwp.PlayerID, &mwp.CreatedAt)
 	if err != nil {
@@ -87,7 +89,8 @@ func GetMatchWaitingPlayers(ctx context.Context, db Queryer, keys []string) ([]*
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetMatchWaitingPlayers", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetMatchWaitingPlayers", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -112,6 +115,28 @@ func GetMatchWaitingPlayers(ctx context.Context, db Queryer, keys []string) ([]*
 	}
 
 	return res, nil
+}
+
+func QueryMatchWaitingPlayer(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*MatchWaitingPlayer, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryMatchWaitingPlayer", sqlstr, args)
+	defer closeSpan()
+
+	var dest MatchWaitingPlayer
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryMatchWaitingPlayers(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*MatchWaitingPlayer, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryMatchWaitingPlayers", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*MatchWaitingPlayer
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the MatchWaitingPlayer has been deleted from the database.
@@ -254,12 +279,12 @@ func (mwp *MatchWaitingPlayer) InsertIfNotExist(ctx context.Context, db Executor
 //
 // Generated from foreign key 'match_waiting_players_ibfk_1'.
 func (mwp *MatchWaitingPlayer) Player(ctx context.Context, db Executor) (*Player, error) {
-	return PlayerByID(ctx, db, mwp.PlayerID)
+	return GetPlayerByID(ctx, db, mwp.PlayerID)
 }
 
-// MatchWaitingPlayerByPlayerID retrieves a row from 'match_waiting_players' as a MatchWaitingPlayer.
+// GetMatchWaitingPlayerByPlayerID retrieves a row from 'match_waiting_players' as a MatchWaitingPlayer.
 // Generated from index 'match_waiting_players_player_id_pkey'.
-func MatchWaitingPlayerByPlayerID(ctx context.Context, db Queryer, playerID string) (*MatchWaitingPlayer, error) {
+func GetMatchWaitingPlayerByPlayerID(ctx context.Context, db Queryer, playerID string) (*MatchWaitingPlayer, error) {
 	var err error
 
 	// sql query

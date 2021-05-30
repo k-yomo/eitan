@@ -24,6 +24,11 @@ message UserRegisteredEvent {
     string display_name = 4;
 }
 
+message EmailConfirmationCreatedEvent {
+    string email = 1;
+    string confirmation_code = 2;
+}
+
 message AuthenticateRequest {
     string session_id = 1;
 }

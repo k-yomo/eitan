@@ -62,8 +62,11 @@ func main() {
 		emailClient = email.NewNoopEmailClient()
 	}
 
-	h := NewPubSubHandler(dsClient, emailClient)
-	err = pubsubSubscriber.HandleSubscriptionFunc("notification.account.user-registered", h.HandleUserRegisteredEvent)
+	h := NewPubSubHandler(dsClient, emailClient, appConfig.WebAppURL)
+	err = pubsubSubscriber.HandleSubscriptionFuncMap(map[string]pm.MessageHandler{
+		"notification.account.user-registered":            h.HandleUserRegisteredEvent,
+		"notification.account.email-confirmation-created": h.HandleEmailConfirmationCreatedEvent,
+	})
 	if err != nil {
 		logger.Fatal("set subscription handler failed", zap.Error(err))
 	}

@@ -69,7 +69,9 @@ func GetUserProfile(ctx context.Context, db Queryer, key string) (*UserProfile, 
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetUserProfile", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetUserProfile", sqlstr, key)
+	defer closeSpan()
+
 	up := UserProfile{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&up.UserID, &up.Email, &up.DisplayName, &up.ScreenImgURL, &up.CreatedAt, &up.UpdatedAt)
 	if err != nil {
@@ -91,7 +93,8 @@ func GetUserProfiles(ctx context.Context, db Queryer, keys []string) ([]*UserPro
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetUserProfiles", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetUserProfiles", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -116,6 +119,28 @@ func GetUserProfiles(ctx context.Context, db Queryer, keys []string) ([]*UserPro
 	}
 
 	return res, nil
+}
+
+func QueryUserProfile(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*UserProfile, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryUserProfile", sqlstr, args)
+	defer closeSpan()
+
+	var dest UserProfile
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryUserProfiles(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*UserProfile, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryUserProfiles", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*UserProfile
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the UserProfile has been deleted from the database.
@@ -258,12 +283,12 @@ func (up *UserProfile) InsertIfNotExist(ctx context.Context, db Executor) error 
 //
 // Generated from foreign key 'user_profiles_ibfk_1'.
 func (up *UserProfile) User(ctx context.Context, db Executor) (*User, error) {
-	return UserByID(ctx, db, up.UserID)
+	return GetUserByID(ctx, db, up.UserID)
 }
 
-// UserProfileByEmail retrieves a row from 'user_profiles' as a UserProfile.
+// GetUserProfileByEmail retrieves a row from 'user_profiles' as a UserProfile.
 // Generated from index 'email'.
-func UserProfileByEmail(ctx context.Context, db Queryer, email string) (*UserProfile, error) {
+func GetUserProfileByEmail(ctx context.Context, db Queryer, email string) (*UserProfile, error) {
 	var err error
 
 	// sql query
@@ -289,9 +314,9 @@ func UserProfileByEmail(ctx context.Context, db Queryer, email string) (*UserPro
 	return &up, nil
 }
 
-// UserProfileByUserID retrieves a row from 'user_profiles' as a UserProfile.
+// GetUserProfileByUserID retrieves a row from 'user_profiles' as a UserProfile.
 // Generated from index 'user_profiles_user_id_pkey'.
-func UserProfileByUserID(ctx context.Context, db Queryer, userID string) (*UserProfile, error) {
+func GetUserProfileByUserID(ctx context.Context, db Queryer, userID string) (*UserProfile, error) {
 	var err error
 
 	// sql query

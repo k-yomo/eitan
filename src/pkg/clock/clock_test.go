@@ -71,7 +71,7 @@ func TestSetTimeZone(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want string
+		want    string
 		wantErr bool
 	}{
 		{
@@ -79,7 +79,7 @@ func TestSetTimeZone(t *testing.T) {
 			args: args{
 				timeZone: "Invalid",
 			},
-			want: "Local",
+			want:    "Local",
 			wantErr: true,
 		},
 		{

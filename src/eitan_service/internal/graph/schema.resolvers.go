@@ -73,7 +73,7 @@ func (r *queryResolver) CurrentPlayer(ctx context.Context) (*model.Player, error
 		return nil, customerror.NewErrGetUserIDFailedInAuthRequiredMethod()
 	}
 
-	player, err := infra.PlayerByUserID(ctx, r.db, userID)
+	player, err := infra.GetPlayerByUserID(ctx, r.db, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, customerror.NewErrNotFound(err)
@@ -89,7 +89,7 @@ func (r *subscriptionResolver) RandomMatchRoomDecided(ctx context.Context) (<-ch
 		return nil, customerror.NewErrGetUserIDFailedInAuthRequiredMethod()
 	}
 
-	player, err := infra.PlayerByUserID(ctx, r.db, userID)
+	player, err := infra.GetPlayerByUserID(ctx, r.db, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, customerror.NewErrNotFound(err)
