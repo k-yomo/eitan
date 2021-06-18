@@ -9,7 +9,7 @@ CREATE TABLE eitandb.players (
 CREATE TABLE eitandb.match_waiting_players (
   player_id VARCHAR(255) NOT NULL PRIMARY KEY COMMENT 'ユーザーID',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(player_id) REFERENCES players(id) ON UPDATE RESTRICT ON DELETE RESTRICT
+  CONSTRAINT match_waiting_players_ibfk_1 FOREIGN KEY(player_id) REFERENCES players(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '待機中プレイヤー';
 
 CREATE TABLE eitandb.quiz_rooms (
@@ -23,6 +23,6 @@ CREATE TABLE eitandb.quiz_room_players (
   player_id VARCHAR(255) NOT NULL COMMENT 'プレーヤーID',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (quiz_room_id, player_id),
-  FOREIGN KEY(quiz_room_id) REFERENCES quiz_rooms(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
-  FOREIGN KEY(player_id) REFERENCES players(id) ON UPDATE RESTRICT ON DELETE RESTRICT
+  CONSTRAINT quiz_room_players_ibfk_1 FOREIGN KEY(quiz_room_id) REFERENCES quiz_rooms(id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+  CONSTRAINT quiz_room_players_ibfk_2 FOREIGN KEY(player_id) REFERENCES players(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'クイズルーム入室中ユーザー';

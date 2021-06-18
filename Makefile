@@ -1,6 +1,7 @@
 
 .PHONY: setup
 setup:
+	brew list mysqldef &>/dev/null || brew install sqldef/sqldef/mysqldef
 	brew list golangci-lint &>/dev/null || brew install golangci-lint
 	brew list pubsub_cli &>/dev/null || (brew tap k-yomo/pubsub_cli && brew install pubsub_cli)
 	GO111MODULE=off go get -u github.com/cosmtrek/air
@@ -55,6 +56,15 @@ gen-proto:
 	protoc -I defs/proto defs/proto/*.proto \
 	--experimental_allow_proto3_optional \
 	--go_out=plugins=grpc:src/internal/pb/eitan
+
+.PHONY: db-migrate
+db-migrate:
+	mysqldef -P 13306 -u root $(ARGS) $(db) < defs/sql/ddl/$(db)_schema.sql
+	make gen-model
+
+.PHONY: db-migrate-dry
+db-migrate-dry:
+	ARGS=--dry-run make db-migrate
 
 .PHONY: reset-db
 reset-db:
