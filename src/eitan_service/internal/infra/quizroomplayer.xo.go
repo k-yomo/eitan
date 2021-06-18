@@ -291,7 +291,7 @@ func (qrp *QuizRoomPlayer) Player(ctx context.Context, db Executor) (*Player, er
 }
 
 // GetQuizRoomPlayersByPlayerID retrieves a row from 'quiz_room_players' as a QuizRoomPlayer.
-// Generated from index 'player_id'.
+// Generated from index 'quiz_room_players_ibfk_2'.
 func GetQuizRoomPlayersByPlayerID(ctx context.Context, db Queryer, playerID string) ([]*QuizRoomPlayer, error) {
 	var err error
 
