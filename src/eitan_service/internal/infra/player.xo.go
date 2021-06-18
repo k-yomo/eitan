@@ -67,7 +67,9 @@ func GetPlayer(ctx context.Context, db Queryer, key string) (*Player, error) {
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetPlayer", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetPlayer", sqlstr, key)
+	defer closeSpan()
+
 	p := Player{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&p.ID, &p.UserID, &p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
@@ -89,7 +91,8 @@ func GetPlayers(ctx context.Context, db Queryer, keys []string) ([]*Player, erro
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetPlayers", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetPlayers", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -114,6 +117,28 @@ func GetPlayers(ctx context.Context, db Queryer, keys []string) ([]*Player, erro
 	}
 
 	return res, nil
+}
+
+func QueryPlayer(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*Player, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryPlayer", sqlstr, args)
+	defer closeSpan()
+
+	var dest Player
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryPlayers(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*Player, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryPlayers", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*Player
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the Player has been deleted from the database.
@@ -252,9 +277,9 @@ func (p *Player) InsertIfNotExist(ctx context.Context, db Executor) error {
 	return nil
 }
 
-// PlayerByID retrieves a row from 'players' as a Player.
+// GetPlayerByID retrieves a row from 'players' as a Player.
 // Generated from index 'players_id_pkey'.
-func PlayerByID(ctx context.Context, db Queryer, id string) (*Player, error) {
+func GetPlayerByID(ctx context.Context, db Queryer, id string) (*Player, error) {
 	var err error
 
 	// sql query
@@ -280,9 +305,9 @@ func PlayerByID(ctx context.Context, db Queryer, id string) (*Player, error) {
 	return &p, nil
 }
 
-// PlayerByUserID retrieves a row from 'players' as a Player.
+// GetPlayerByUserID retrieves a row from 'players' as a Player.
 // Generated from index 'user_id'.
-func PlayerByUserID(ctx context.Context, db Queryer, userID string) (*Player, error) {
+func GetPlayerByUserID(ctx context.Context, db Queryer, userID string) (*Player, error) {
 	var err error
 
 	// sql query
@@ -308,9 +333,9 @@ func PlayerByUserID(ctx context.Context, db Queryer, userID string) (*Player, er
 	return &p, nil
 }
 
-// PlayersByUserID retrieves a row from 'players' as a Player.
+// GetPlayersByUserID retrieves a row from 'players' as a Player.
 // Generated from index 'user_id_idx'.
-func PlayersByUserID(ctx context.Context, db Queryer, userID string) ([]*Player, error) {
+func GetPlayersByUserID(ctx context.Context, db Queryer, userID string) ([]*Player, error) {
 	var err error
 
 	// sql query

@@ -8,6 +8,7 @@ import (
 
 type AppConfig struct {
 	Env            appenv.Env `default:"local" envconfig:"APP_ENV"`
+	WebAppURL      string     `default:"http://local.eitan-flash.com:3000" envconfig:"WEB_APP_URL"`
 	GCPProjectID   string     `default:"local" envconfig:"GCP_PROJECT_ID"`
 	SendGridAPIKey string     `envconfig:"SEND_GRID_API_KEY"`
 }

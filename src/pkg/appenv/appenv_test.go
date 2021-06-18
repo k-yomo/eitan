@@ -11,19 +11,19 @@ func TestEnv_IsDeployed(t *testing.T) {
 		want bool
 	}{
 		{
-			e: Test,
+			e:    Test,
 			want: false,
 		},
 		{
-			e: Local,
+			e:    Local,
 			want: false,
 		},
 		{
-			e: Dev,
+			e:    Dev,
 			want: true,
 		},
 		{
-			e: Prod,
+			e:    Prod,
 			want: true,
 		},
 	}
@@ -46,11 +46,11 @@ func TestEnv_IsValid(t *testing.T) {
 		want bool
 	}{
 		{
-			e: Env("invalid"),
+			e:    Env("invalid"),
 			want: false,
 		},
 		{
-			e: Prod,
+			e:    Prod,
 			want: true,
 		},
 	}

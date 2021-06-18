@@ -71,20 +71,23 @@ func main() {
 
 	if appConfig.Env.IsDeployed() {
 		if err := tracing.InitTracer(); err != nil {
-			logger.Fatal("set trace provider failed", zap.Error(err))
+			logger.Fatal("set trace authProvider failed", zap.Error(err))
 		}
 	}
 
 	r := newRouter(appConfig, logger)
 
 	goth.UseProviders(
-		google.New(appConfig.GoogleAuthClientKey, appConfig.GoogleAuthSecret, fmt.Sprintf("%s/auth/google/callback", appConfig.AppRootURL), "email", "profile"),
+		google.New(appConfig.GoogleAuthClientKey, appConfig.GoogleAuthSecret, fmt.Sprintf("%s/auth/oauth/google/callback", appConfig.AppRootURL), "email", "profile"),
 	)
 
 	authHandler := NewAuthHandler(sessionManager, db, pubsubClient, appConfig.WebAppURL)
+	r.HandleFunc("/auth/email/confirmations", authHandler.CreateEmailConfirmation).Methods("POST")
+	r.HandleFunc("/auth/email/sign_up", authHandler.SignUpWithEmail).Methods("POST")
+	r.HandleFunc("/auth/email/login", authHandler.LoginWithEmail).Methods("POST")
 	r.HandleFunc("/auth/logout", authHandler.Logout).Methods("GET")
-	r.HandleFunc("/auth/{provider}", authHandler.HandleOAuth).Methods("GET")
-	r.HandleFunc("/auth/{provider}/callback", authHandler.HandleOAuthCallback).Methods("GET")
+	r.HandleFunc("/auth/oauth/{provider}", authHandler.LoginWithOAuth).Methods("GET")
+	r.HandleFunc("/auth/oauth/{provider}/callback", authHandler.HandleOAuthCallback).Methods("GET")
 
 	grpcServer := grpc.NewServer(
 		grpc_middleware.WithUnaryServerChain(

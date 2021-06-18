@@ -67,7 +67,9 @@ func GetGoogleAuth(ctx context.Context, db Queryer, key string) (*GoogleAuth, er
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetGoogleAuth", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetGoogleAuth", sqlstr, key)
+	defer closeSpan()
+
 	ga := GoogleAuth{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&ga.UserID, &ga.GoogleID, &ga.CreatedAt, &ga.UpdatedAt)
 	if err != nil {
@@ -89,7 +91,8 @@ func GetGoogleAuths(ctx context.Context, db Queryer, keys []string) ([]*GoogleAu
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetGoogleAuths", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetGoogleAuths", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -114,6 +117,28 @@ func GetGoogleAuths(ctx context.Context, db Queryer, keys []string) ([]*GoogleAu
 	}
 
 	return res, nil
+}
+
+func QueryGoogleAuth(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*GoogleAuth, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryGoogleAuth", sqlstr, args)
+	defer closeSpan()
+
+	var dest GoogleAuth
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryGoogleAuths(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*GoogleAuth, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryGoogleAuths", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*GoogleAuth
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the GoogleAuth has been deleted from the database.
@@ -256,12 +281,12 @@ func (ga *GoogleAuth) InsertIfNotExist(ctx context.Context, db Executor) error {
 //
 // Generated from foreign key 'google_auth_ibfk_1'.
 func (ga *GoogleAuth) User(ctx context.Context, db Executor) (*User, error) {
-	return UserByID(ctx, db, ga.UserID)
+	return GetUserByID(ctx, db, ga.UserID)
 }
 
-// GoogleAuthByUserID retrieves a row from 'google_auth' as a GoogleAuth.
+// GetGoogleAuthByUserID retrieves a row from 'google_auth' as a GoogleAuth.
 // Generated from index 'google_auth_user_id_pkey'.
-func GoogleAuthByUserID(ctx context.Context, db Queryer, userID string) (*GoogleAuth, error) {
+func GetGoogleAuthByUserID(ctx context.Context, db Queryer, userID string) (*GoogleAuth, error) {
 	var err error
 
 	// sql query
@@ -287,9 +312,9 @@ func GoogleAuthByUserID(ctx context.Context, db Queryer, userID string) (*Google
 	return &ga, nil
 }
 
-// GoogleAuthByGoogleID retrieves a row from 'google_auth' as a GoogleAuth.
+// GetGoogleAuthByGoogleID retrieves a row from 'google_auth' as a GoogleAuth.
 // Generated from index 'google_id'.
-func GoogleAuthByGoogleID(ctx context.Context, db Queryer, googleID string) (*GoogleAuth, error) {
+func GetGoogleAuthByGoogleID(ctx context.Context, db Queryer, googleID string) (*GoogleAuth, error) {
 	var err error
 
 	// sql query

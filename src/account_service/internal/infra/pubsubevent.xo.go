@@ -71,7 +71,9 @@ func GetPubsubEvent(ctx context.Context, db Queryer, key string) (*PubsubEvent, 
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetPubsubEvent", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetPubsubEvent", sqlstr, key)
+	defer closeSpan()
+
 	pe := PubsubEvent{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&pe.ID, &pe.DeduplicateKey, &pe.Topic, &pe.Data, &pe.IsPublished, &pe.PublishedAt, &pe.CreatedAt)
 	if err != nil {
@@ -93,7 +95,8 @@ func GetPubsubEvents(ctx context.Context, db Queryer, keys []string) ([]*PubsubE
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetPubsubEvents", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetPubsubEvents", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -118,6 +121,28 @@ func GetPubsubEvents(ctx context.Context, db Queryer, keys []string) ([]*PubsubE
 	}
 
 	return res, nil
+}
+
+func QueryPubsubEvent(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*PubsubEvent, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryPubsubEvent", sqlstr, args)
+	defer closeSpan()
+
+	var dest PubsubEvent
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryPubsubEvents(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*PubsubEvent, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryPubsubEvents", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*PubsubEvent
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the PubsubEvent has been deleted from the database.
@@ -256,9 +281,9 @@ func (pe *PubsubEvent) InsertIfNotExist(ctx context.Context, db Executor) error 
 	return nil
 }
 
-// PubsubEventsByIsPublished retrieves a row from 'pubsub_events' as a PubsubEvent.
+// GetPubsubEventsByIsPublished retrieves a row from 'pubsub_events' as a PubsubEvent.
 // Generated from index 'is_published_idx'.
-func PubsubEventsByIsPublished(ctx context.Context, db Queryer, isPublished bool) ([]*PubsubEvent, error) {
+func GetPubsubEventsByIsPublished(ctx context.Context, db Queryer, isPublished bool) ([]*PubsubEvent, error) {
 	var err error
 
 	// sql query
@@ -297,9 +322,9 @@ func PubsubEventsByIsPublished(ctx context.Context, db Queryer, isPublished bool
 	return res, nil
 }
 
-// PubsubEventByID retrieves a row from 'pubsub_events' as a PubsubEvent.
+// GetPubsubEventByID retrieves a row from 'pubsub_events' as a PubsubEvent.
 // Generated from index 'pubsub_events_id_pkey'.
-func PubsubEventByID(ctx context.Context, db Queryer, id string) (*PubsubEvent, error) {
+func GetPubsubEventByID(ctx context.Context, db Queryer, id string) (*PubsubEvent, error) {
 	var err error
 
 	// sql query

@@ -1,53 +1,18 @@
-resource "google_pubsub_topic" "account_user_registered" {
-  name = "account.user-registered"
-}
 
-resource "google_pubsub_topic_iam_binding" "publisher" {
-  topic = google_pubsub_topic.account_user_registered.name
-  role  = "roles/pubsub.publisher"
-  members = [
-    "serviceAccount:${module.account_service.service_account_email}",
-  ]
-}
-
-resource "google_pubsub_subscription" "notification_account_user_registered" {
-  name  = "notification.account.user-registered"
-  topic = google_pubsub_topic.account_user_registered.name
-
-  ack_deadline_seconds = 600
-  // 10m
-  message_retention_duration = "604800s"
-  // 7days
-  expiration_policy {
-    ttl = "" // empty means no expiration
+module "account_user_registered_event" {
+  source          = "../modules/pubsub"
+  topic_name      = "account.user-registered"
+  publisher_email = module.account_service.service_account_email
+  subscriber = {
+    "notification.account.user-registered" : module.notification_service.service_account_email,
   }
 }
-resource "google_pubsub_subscription_iam_binding" "notification_account_user_registered" {
-  for_each     = toset(["roles/pubsub.viewer", "roles/pubsub.subscriber"])
-  subscription = google_pubsub_subscription.notification_account_user_registered.name
-  role         = each.value
-  members = [
-    "serviceAccount:${module.notification_service.service_account_email}",
-  ]
-}
 
-resource "google_pubsub_subscription" "eitan_account_user_registered" {
-  name  = "eitan.account.user-registered"
-  topic = google_pubsub_topic.account_user_registered.name
-
-  ack_deadline_seconds = 600
-  // 10m
-  message_retention_duration = "604800s"
-  // 7days
-  expiration_policy {
-    ttl = "" // empty means no expiration
+module "account_email_confirmation_created_event" {
+  source          = "../modules/pubsub"
+  topic_name      = "account.email-confirmation-created"
+  publisher_email = module.account_service.service_account_email
+  subscriber = {
+    "notification.account.email-confirmation-created" : module.notification_service.service_account_email,
   }
-}
-resource "google_pubsub_subscription_iam_binding" "eitan_account_user_registered" {
-  for_each     = toset(["roles/pubsub.viewer", "roles/pubsub.subscriber"])
-  subscription = google_pubsub_subscription.eitan_account_user_registered.name
-  role         = each.value
-  members = [
-    "serviceAccount:${module.eitan_service.service_account_email}",
-  ]
 }

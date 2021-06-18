@@ -582,7 +582,8 @@ type QuizChoice implements Node {
 
 input UpdatePlayerIdInput {
     playerId: String!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 

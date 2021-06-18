@@ -82,7 +82,7 @@ func publishMessages(ctx context.Context, db *sqlx.DB, pubsubClient *pubsub.Clie
 	return nil
 }
 
-func getUnpublishedEvents(ctx context.Context, db *sqlx.DB) ([]*PubSubEvent, error) {
+func getUnpublishedEvents(ctx context.Context, db *sqlx.DB) ([]*pubsubevent.PubSubEvent, error) {
 	const sqlstr = `
 SELECT 
 	id,
@@ -96,7 +96,7 @@ FROM pubsub_events
 WHERE is_published = FALSE
 `
 
-	var events []*PubSubEvent
+	var events []*pubsubevent.PubSubEvent
 	err := db.SelectContext(ctx, &events, sqlstr)
 	if err != nil {
 		return nil, err

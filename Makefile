@@ -25,9 +25,9 @@ run-dc:
 
 .PHONY: gen-model
 gen-model:
-	rm src/account_service/infra/*.xo.go src/eitan_service/infra/*.xo.go
-	xo mysql://root@localhost:13306/accountdb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/account_service/internal/infra
-	xo mysql://root@localhost:13306/eitandb --int32-type int64 --uint32-type int64  --template-path xo_templates -o src/eitan_service/internal/infra
+	rm -f src/account_service/internal/infra/*.xo.go src/eitan_service/internal/infra/*.xo.go
+	xo mysql://root@localhost:13306/accountdb --int32-type int64 --uint32-type int64 --ignore-fields created_at,updated_at  --template-path xo_templates -o src/account_service/internal/infra
+	xo mysql://root@localhost:13306/eitandb --int32-type int64 --uint32-type int64 --ignore-fields created_at,updated_at  --template-path xo_templates -o src/eitan_service/internal/infra
 
 test-account:
 	go test ./src/account_service/... -v $(TESTARGS) -coverprofile=account_service.coverage.out

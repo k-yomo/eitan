@@ -51,7 +51,7 @@ func GetAll{{ .Name }}s (ctx context.Context, db Queryer) ([]*{{ .Name }}, error
 }
 
 // Get{{ .Name }} gets a {{ .Name }} by primary key
-func Get{{ .Name }} (ctx context.Context, db Queryer, key {{ .PrimaryKey.Type }}) (*{{ .Name }}, error) {
+func Get{{ .Name }}(ctx context.Context, db Queryer, key {{ .PrimaryKey.Type }}) (*{{ .Name }}, error) {
 	// sql query
 	const sqlstr = `SELECT ` +
 		`{{ colnames .Fields }} ` +
@@ -60,7 +60,9 @@ func Get{{ .Name }} (ctx context.Context, db Queryer, key {{ .PrimaryKey.Type }}
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "Get{{ .Name }}", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "Get{{ .Name }}", sqlstr, key)
+	defer closeSpan()
+
 	{{ $short }} := {{ .Name }}{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan({{ fieldnames .Fields (print "&" $short) }})
 	if err != nil {
@@ -70,7 +72,7 @@ func Get{{ .Name }} (ctx context.Context, db Queryer, key {{ .PrimaryKey.Type }}
 }
 
 // Get{{ .Name }}s gets {{ .Name }} list by primary keys
-func Get{{ .Name }}s (ctx context.Context, db Queryer, keys []{{ .PrimaryKey.Type }}) ([]*{{ .Name }}, error) {
+func Get{{ .Name }}s(ctx context.Context, db Queryer, keys []{{ .PrimaryKey.Type }}) ([]*{{ .Name }}, error) {
 	// sql query
 	sqlstr, args, err := sqlx.In(`SELECT ` +
 		`{{ colnames .Fields }} ` +
@@ -82,7 +84,8 @@ func Get{{ .Name }}s (ctx context.Context, db Queryer, keys []{{ .PrimaryKey.Typ
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "Get{{ .Name }}s", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "Get{{ .Name }}s", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -107,6 +110,28 @@ func Get{{ .Name }}s (ctx context.Context, db Queryer, keys []{{ .PrimaryKey.Typ
 	}
 
 	return res, nil
+}
+
+func Query{{ .Name }}(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*{{ .Name }}, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "Query{{ .Name }}", sqlstr, args)
+	defer closeSpan()
+
+    var dest {{.Name }}
+    err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+    return &dest, err
+}
+
+func Query{{ .Name }}s(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*{{ .Name }}, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "Query{{ .Name }}s", sqlstr, args)
+	defer closeSpan()
+
+    var dest []*{{.Name }}
+    err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+    return dest, err
 }
 
 // Deleted provides information if the {{ .Name }} has been deleted from the database.
@@ -247,7 +272,7 @@ func ({{ $short }} *{{ .Name }}) Delete(ctx context.Context, db Execer) error {
 
 		// log and trace
 		XOLog(ctx, sqlstr, {{ fieldnames .PrimaryKeyFields $short }})
-        closeSpan := startSQLSpan(ctx, "{ .Name }}_Delete", sqlstr, {{ fieldnames .PrimaryKeyFields $short }})
+        closeSpan := startSQLSpan(ctx, "{ .Name }}Delete", sqlstr, {{ fieldnames .PrimaryKeyFields $short }})
         defer closeSpan()
 
 		// run query

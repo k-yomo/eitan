@@ -20,6 +20,8 @@ spec:
           env:
             - name: APP_ENV
               value: "prod"
+            - name: WEB_APP_URL
+              value: "https://eitan-flash.com"
             - name: GCP_PROJECT_ID
               value: "eitan-prod"
             - name: SEND_GRID_API_KEY

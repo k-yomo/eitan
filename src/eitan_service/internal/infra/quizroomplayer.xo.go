@@ -66,7 +66,9 @@ func GetQuizRoomPlayer(ctx context.Context, db Queryer, key string) (*QuizRoomPl
 
 	// log and trace
 	XOLog(ctx, sqlstr, key)
-	startSQLSpan(ctx, "GetQuizRoomPlayer", sqlstr, key)
+	closeSpan := startSQLSpan(ctx, "GetQuizRoomPlayer", sqlstr, key)
+	defer closeSpan()
+
 	qrp := QuizRoomPlayer{_exists: true}
 	err := db.QueryRowxContext(ctx, sqlstr, key).Scan(&qrp.QuizRoomID, &qrp.PlayerID, &qrp.CreatedAt)
 	if err != nil {
@@ -88,7 +90,8 @@ func GetQuizRoomPlayers(ctx context.Context, db Queryer, keys []string) ([]*Quiz
 
 	// log and trace
 	XOLog(ctx, sqlstr, args)
-	startSQLSpan(ctx, "GetQuizRoomPlayers", sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "GetQuizRoomPlayers", sqlstr, args)
+	defer closeSpan()
 
 	rows, err := db.QueryContext(ctx, sqlstr, args...)
 	if err != nil {
@@ -113,6 +116,28 @@ func GetQuizRoomPlayers(ctx context.Context, db Queryer, keys []string) ([]*Quiz
 	}
 
 	return res, nil
+}
+
+func QueryQuizRoomPlayer(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) (*QuizRoomPlayer, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryQuizRoomPlayer", sqlstr, args)
+	defer closeSpan()
+
+	var dest QuizRoomPlayer
+	err := sqlx.GetContext(ctx, q, &dest, sqlstr, args...)
+	return &dest, err
+}
+
+func QueryQuizRoomPlayers(ctx context.Context, q sqlx.QueryerContext, sqlstr string, args ...interface{}) ([]*QuizRoomPlayer, error) {
+	// log and trace
+	XOLog(ctx, sqlstr, args)
+	closeSpan := startSQLSpan(ctx, "QueryQuizRoomPlayers", sqlstr, args)
+	defer closeSpan()
+
+	var dest []*QuizRoomPlayer
+	err := sqlx.SelectContext(ctx, q, &dest, sqlstr, args...)
+	return dest, err
 }
 
 // Deleted provides information if the QuizRoomPlayer has been deleted from the database.
@@ -203,7 +228,7 @@ func (qrp *QuizRoomPlayer) Delete(ctx context.Context, db Execer) error {
 
 	// log and trace
 	XOLog(ctx, sqlstr, qrp.QuizRoomID, qrp.PlayerID)
-	closeSpan := startSQLSpan(ctx, "{ .Name }}_Delete", sqlstr, qrp.QuizRoomID, qrp.PlayerID)
+	closeSpan := startSQLSpan(ctx, "{ .Name }}Delete", sqlstr, qrp.QuizRoomID, qrp.PlayerID)
 	defer closeSpan()
 
 	// run query
@@ -255,19 +280,19 @@ func (qrp *QuizRoomPlayer) InsertIfNotExist(ctx context.Context, db Executor) er
 //
 // Generated from foreign key 'quiz_room_players_ibfk_1'.
 func (qrp *QuizRoomPlayer) QuizRoom(ctx context.Context, db Executor) (*QuizRoom, error) {
-	return QuizRoomByID(ctx, db, qrp.QuizRoomID)
+	return GetQuizRoomByID(ctx, db, qrp.QuizRoomID)
 }
 
 // Player returns the Player associated with the QuizRoomPlayer's PlayerID (player_id).
 //
 // Generated from foreign key 'quiz_room_players_ibfk_2'.
 func (qrp *QuizRoomPlayer) Player(ctx context.Context, db Executor) (*Player, error) {
-	return PlayerByID(ctx, db, qrp.PlayerID)
+	return GetPlayerByID(ctx, db, qrp.PlayerID)
 }
 
-// QuizRoomPlayersByPlayerID retrieves a row from 'quiz_room_players' as a QuizRoomPlayer.
+// GetQuizRoomPlayersByPlayerID retrieves a row from 'quiz_room_players' as a QuizRoomPlayer.
 // Generated from index 'player_id'.
-func QuizRoomPlayersByPlayerID(ctx context.Context, db Queryer, playerID string) ([]*QuizRoomPlayer, error) {
+func GetQuizRoomPlayersByPlayerID(ctx context.Context, db Queryer, playerID string) ([]*QuizRoomPlayer, error) {
 	var err error
 
 	// sql query
@@ -306,9 +331,9 @@ func QuizRoomPlayersByPlayerID(ctx context.Context, db Queryer, playerID string)
 	return res, nil
 }
 
-// QuizRoomPlayerByPlayerID retrieves a row from 'quiz_room_players' as a QuizRoomPlayer.
+// GetQuizRoomPlayerByPlayerID retrieves a row from 'quiz_room_players' as a QuizRoomPlayer.
 // Generated from index 'quiz_room_players_player_id_pkey'.
-func QuizRoomPlayerByPlayerID(ctx context.Context, db Queryer, playerID string) (*QuizRoomPlayer, error) {
+func GetQuizRoomPlayerByPlayerID(ctx context.Context, db Queryer, playerID string) (*QuizRoomPlayer, error) {
 	var err error
 
 	// sql query
