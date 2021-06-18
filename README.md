@@ -32,3 +32,17 @@ $ make run
 ```sh
 $ make run-dc
 ```
+
+## DB schema migration in local
+1. Edit [schema file](./defs/sql/ddl)
+
+2. Dry run migration
+```sh
+$ make db-migrate-dry
+```
+
+3. Apply migration
+```sh
+$ make db-migrate
+```
+※ `make db-migrate` will also regenerate Go models.
